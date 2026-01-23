@@ -1,0 +1,327 @@
+/*
+   FONT FAMILY GROUPS
+*/
+
+/* Inter */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    url("./assets/fonts/inter/Inter-Regular.woff2?v=3.19") format("woff2"),
+    url("./assets/fonts/inter/Inter-Regular.woff?v=3.19") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src:
+    url("./assets/fonts/inter/Inter-Medium.woff2?v=3.19") format("woff2"),
+    url("./assets/fonts/inter/Inter-Medium.woff?v=3.19") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src:
+    url("./assets/fonts/inter/Inter-Medium.woff2?v=3.19") format("woff2"),
+    url("./assets/fonts/inter/Inter-Medium.woff?v=3.19") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src:
+    url("./assets/fonts/inter/Inter-Bold.woff2?v=3.19") format("woff2"),
+    url("./assets/fonts/inter/Inter-Bold.woff?v=3.19") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src:
+    url("./assets/fonts/inter/Inter-Black.woff2?v=3.19") format("woff2"),
+    url("./assets/fonts/inter/Inter-Black.woff?v=3.19") format("woff");
+}
+
+/* Inter var */
+@font-face {
+  font-family: "Inter var";
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: oblique 0deg 10deg;
+  src: url("./assets/fonts/intervar/Inter.var.woff2?v=3.19") format("woff2");
+}
+
+/* Roboto */
+@font-face {
+  font-family: "Roboto";
+  src:
+    url("./assets/fonts/roboto/roboto-mono-normal.woff2") format("woff2"),
+    url("./assets/fonts/roboto/roboto-mono-normal.woff") format("woff");
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+  font-display: swap;
+}
+
+/* Termina */
+@font-face {
+  font-family: "Termina";
+  src:
+    url("./assets/fonts/termina/Termina-Medium.woff2") format("woff2"),
+    url("./assets/fonts/termina/Termina-Medium.woff") format("woff");
+  font-style: normal;
+  font-weight: 500;
+  font-stretch: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Termina";
+  src:
+    url("./assets/fonts/termina/Termina-Demi.woff2") format("woff2"),
+    url("./assets/fonts/termina/Termina-Demi.woff") format("woff");
+  font-style: normal;
+  font-weight: 600;
+  font-stretch: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Termina";
+  src:
+    url("./assets/fonts/termina/Termina-Bold.woff2") format("woff2"),
+    url("./assets/fonts/termina/Termina-Bold.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  @apply font-interNormal text-light bg-dark;
+  font-feature-settings:
+    "kern" on,
+    "liga" on,
+    "calt" on,
+    "zero" on;
+  -webkit-font-feature-settings:
+    "kern" on,
+    "liga" on,
+    "calt" on,
+    "zero" on;
+  text-size-adjust: 100%;
+  -moz-osx-font-smoothing: grayscale;
+  font-smoothing: antialiased;
+  font-variant-ligatures: contextual common-ligatures;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+
+  @supports (font-variation-settings: normal) {
+    @apply font-interVar;
+  }
+}
+
+.md {
+  a {
+    @apply underline;
+  }
+}
+/* 
+.markdown { 
+  h1 {
+    @apply text-500 font-medium my-2;
+  }
+
+  h2 {
+    @apply text-400 font-medium my-2;
+  }
+
+  h3,
+  h4,
+  h5 {
+    @apply text-300 font-medium my-2;
+  }
+
+  ul {
+    @apply pl-6 my-4;
+    list-style-type: disc;
+  }
+
+  li {
+    @apply text-200 py-2;
+    @apply leading-6;
+  }
+
+  p {
+    @apply mb-4;
+    text-align: justify;
+    @apply leading-6;
+  }
+
+  pre {
+    @apply bg-grey-500 p-3 rounded-sm mb-4 mt-4;
+  }
+
+  table {
+    @apply w-full my-4;
+  }
+
+  table,
+  th,
+  td {
+    @apply border-2 border-grey-200;
+  }
+
+  table {
+    @apply bg-grey-300;
+  }
+
+  th {
+    @apply p-2;
+  }
+
+  td {
+    @apply p-2;
+    @apply text-center;
+  }
+} */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #f8f8f2;
+  background: 0 0;
+  text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+  font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+  font-size: 1em;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 1.5;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4;
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+}
+pre[class*="language-"] {
+  padding: 1em;
+  margin: 0.5em 0;
+  overflow: auto;
+  border-radius: 0.3em;
+}
+:not(pre) > code[class*="language-"],
+pre[class*="language-"] {
+  background: #272822;
+}
+:not(pre) > code[class*="language-"] {
+  padding: 0.1em;
+  border-radius: 0.3em;
+  white-space: normal;
+}
+.token.cdata,
+.token.comment,
+.token.doctype,
+.token.prolog {
+  color: #8292a2;
+}
+.token.punctuation {
+  color: #f8f8f2;
+}
+.token.namespace {
+  opacity: 0.7;
+}
+.token.constant,
+.token.deleted,
+.token.property,
+.token.symbol,
+.token.tag {
+  color: #f92672;
+}
+.token.boolean,
+.token.number {
+  color: #ae81ff;
+}
+.token.attr-name,
+.token.builtin,
+.token.char,
+.token.inserted,
+.token.selector,
+.token.string {
+  color: #a6e22e;
+}
+.language-css .token.string,
+.style .token.string,
+.token.entity,
+.token.operator,
+.token.url,
+.token.variable {
+  color: #f8f8f2;
+}
+.token.atrule,
+.token.attr-value,
+.token.class-name,
+.token.function {
+  color: #e6db74;
+}
+.token.keyword {
+  color: #66d9ef;
+}
+.token.important,
+.token.regex {
+  color: #fd971f;
+}
+.token.bold,
+.token.important {
+  font-weight: 700;
+}
+.token.italic {
+  font-style: italic;
+}
+.token.entity {
+  cursor: help;
+}
+
+.v-code-block--code {
+  position: relative;
+  z-index: 1;
+}
+.v-code-block--code-copy-button {
+  align-items: center;
+  color: #ccc;
+  cursor: pointer;
+  display: flex;
+  fill: #ccc;
+  height: 1.5em;
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  right: 0.9rem;
+  top: 0.7rem;
+  transition: opacity 0.2s ease-in-out;
+  width: auto;
+  z-index: 2;
+}
+
+.v-code-block--code:hover .v-code-block--code-copy-button {
+  opacity: 1;
+}
+.v-code-block--code-copy-button svg {
+  height: 1rem;
+  width: 1rem;
+}

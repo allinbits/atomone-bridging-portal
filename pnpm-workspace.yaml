@@ -1,0 +1,6 @@
+onlyBuiltDependencies:
+  - esbuild
+  - msgpackr-extract
+  - protobufjs
+  - secp256k1
+  - vue-demi

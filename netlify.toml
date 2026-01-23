@@ -1,0 +1,36 @@
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+  Access-Control-Allow-Origin = '''
+  https://staking.atom.one,
+  '''
+  Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+  Content-Security-Policy = "default-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; img-src 'self' data: https:; connect-src https://atomone-rpc.allinbits.com https://atomone-api.allinbits.com"
+  X-Frame-Options = "SAMEORIGIN"
+  X-Content-Type-Options = "nosniff"
+  Referrer-Policy = "strict-origin"
+  X-XSS-Protection = "1; mode=block"
+  Set-Cookie = '''
+  Secure, 
+  SameSite'''
+  permissions-policy = '''
+  interest-cohort=(),
+  accelerometer=(),
+  autoplay=(),
+  camera=(),
+  autoplay=(),
+  document-domain=(),
+  encrypted-media=(),
+  geolocation=(),
+  gyroscope=(),
+  magnetometer=(),
+  microphone=(),
+  midi=(),
+  payment=(),
+  usb=(),
+  xr-spatial-tracking=()'''

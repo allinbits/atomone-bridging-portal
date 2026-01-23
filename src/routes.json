@@ -1,0 +1,12 @@
+[{
+  "src": "AtomOne",
+  "dest": ["Base", "Ethereum"]
+},
+{
+  "src": "Base",
+  "dest": ["AtomOne"]
+},
+{
+  "src": "Ethereum",
+  "dest": ["AtomOne"]
+}]
