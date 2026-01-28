@@ -14,6 +14,9 @@ importers:
       '@cosmostation/cosmos-client':
         specifier: ^0.0.5
         version: 0.0.5
+      '@safe-global/safe-apps-sdk':
+        specifier: ^9.1.0
+        version: 9.1.0(typescript@5.9.3)(zod@3.25.76)
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@3.4.14)
@@ -29,6 +32,9 @@ importers:
       '@unionlabs/sdk-cosmos':
         specifier: 0.0.0-beta.0
         version: 0.0.0-beta.0(@cosmjs/cosmwasm-stargate@0.33.1)(@cosmjs/math@0.38.1)(@cosmjs/proto-signing@0.38.1)(@cosmjs/stargate@0.38.1)(@effect/platform@0.94.1(effect@3.19.14))(@unionlabs/sdk@2.0.0-beta.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(axios@1.13.2)(effect@3.19.14)(typescript@5.9.3)(viem@2.44.4(typescript@5.9.3)(zod@3.25.76)))(effect@3.19.14)
+      '@unionlabs/sdk-evm':
+        specifier: 0.0.3
+        version: 0.0.3(@effect/platform@0.94.1(effect@3.19.14))(@safe-global/safe-apps-sdk@9.1.0(typescript@5.9.3)(zod@3.25.76))(@unionlabs/sdk@2.0.0-beta.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(axios@1.13.2)(effect@3.19.14)(typescript@5.9.3)(viem@2.44.4(typescript@5.9.3)(zod@3.25.76)))(effect@3.19.14)(viem@2.44.4(typescript@5.9.3)(zod@3.25.76))
       '@vitest/coverage-istanbul':
         specifier: ^4.0.16
         version: 4.0.16(vitest@4.0.16)
@@ -53,6 +59,9 @@ importers:
       effect:
         specifier: ^3.19.14
         version: 3.19.14
+      viem:
+        specifier: ^2.44.4
+        version: 2.44.4(typescript@5.9.3)(zod@3.25.76)
       vite-plugin-node-polyfills:
         specifier: ^0.24.0
         version: 0.24.0(rollup@4.50.2)(vite@7.3.1(@types/node@25.0.3)(jiti@2.6.1)(yaml@2.6.0))
@@ -1407,6 +1416,13 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@safe-global/safe-apps-sdk@9.1.0':
+    resolution: {integrity: sha512-N5p/ulfnnA2Pi2M3YeWjULeWbjo7ei22JwU/IXnhoHzKq3pYCN6ynL9mJBOlvDVv892EgLPCWCOwQk/uBT2v0Q==}
+
+  '@safe-global/safe-gateway-typescript-sdk@3.23.1':
+    resolution: {integrity: sha512-6ORQfwtEJYpalCeVO21L4XXGSdbEMfyp2hEv6cP82afKXSwvse6d3sdelgaPWUxHIsFRkWvHDdzh8IyyKHZKxw==}
+    engines: {node: '>=16'}
+
   '@scure/base@1.1.9':
     resolution: {integrity: sha512-8YKhl8GHiNI/pU2VMaofa2Tor7PJRAjwQLBBuilkJ9L5+13yVbC7JO/wS7piioAvPSwR3JKM1IJ/u4xQzbcXKg==}
 
@@ -1641,6 +1657,18 @@ packages:
       '@effect/platform': ^0.84
       '@unionlabs/sdk': ^2.0.0-beta.1
       effect: ^3.16
+
+  '@unionlabs/sdk-evm@0.0.3':
+    resolution: {integrity: sha512-RTU3E7RA3OaSfxr+oSX5WUVm0o1GDxssr89y9iaMG5A6mfeiv5mM7/Nh8PVPmIDLRoKBxQ5lLAg0hYnD10RBog==}
+    peerDependencies:
+      '@effect/platform': '>=0.91'
+      '@safe-global/safe-apps-sdk': ^9
+      '@unionlabs/sdk': ^2.0.0-beta.2
+      effect: '>=3.17'
+      viem: ^2.33.3
+    peerDependenciesMeta:
+      '@safe-global/safe-apps-sdk':
+        optional: true
 
   '@unionlabs/sdk@2.0.0-beta.2':
     resolution: {integrity: sha512-8PDP7uqjkIYf4Etcd8qSmDsxKIypFgpanz73/MZ8SwYr4XX13YViveUMnt/O8PZp6SJBKm/VtlPT382C+/6IAw==}
@@ -5987,6 +6015,18 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.50.2':
     optional: true
 
+  '@safe-global/safe-apps-sdk@9.1.0(typescript@5.9.3)(zod@3.25.76)':
+    dependencies:
+      '@safe-global/safe-gateway-typescript-sdk': 3.23.1
+      viem: 2.44.4(typescript@5.9.3)(zod@3.25.76)
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+      - zod
+
+  '@safe-global/safe-gateway-typescript-sdk@3.23.1': {}
+
   '@scure/base@1.1.9': {}
 
   '@scure/base@1.2.4': {}
@@ -6270,6 +6310,19 @@ snapshots:
       '@effect/platform': 0.94.1(effect@3.19.14)
       '@unionlabs/sdk': 2.0.0-beta.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(axios@1.13.2)(effect@3.19.14)(typescript@5.9.3)(viem@2.44.4(typescript@5.9.3)(zod@3.25.76))
       effect: 3.19.14
+
+  '@unionlabs/sdk-evm@0.0.3(@effect/platform@0.94.1(effect@3.19.14))(@safe-global/safe-apps-sdk@9.1.0(typescript@5.9.3)(zod@3.25.76))(@unionlabs/sdk@2.0.0-beta.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(axios@1.13.2)(effect@3.19.14)(typescript@5.9.3)(viem@2.44.4(typescript@5.9.3)(zod@3.25.76)))(effect@3.19.14)(viem@2.44.4(typescript@5.9.3)(zod@3.25.76))':
+    dependencies:
+      '@effect/platform': 0.94.1(effect@3.19.14)
+      '@scure/base': 1.2.4
+      '@unionlabs/sdk': 2.0.0-beta.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(axios@1.13.2)(effect@3.19.14)(typescript@5.9.3)(viem@2.44.4(typescript@5.9.3)(zod@3.25.76))
+      crc: 4.3.2
+      effect: 3.19.14
+      viem: 2.44.4(typescript@5.9.3)(zod@3.25.76)
+    optionalDependencies:
+      '@safe-global/safe-apps-sdk': 9.1.0(typescript@5.9.3)(zod@3.25.76)
+    transitivePeerDependencies:
+      - buffer
 
   '@unionlabs/sdk@2.0.0-beta.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(axios@1.13.2)(effect@3.19.14)(typescript@5.9.3)(viem@2.44.4(typescript@5.9.3)(zod@3.25.76))':
     dependencies:

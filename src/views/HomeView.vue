@@ -18,21 +18,67 @@ const tokenIndex = ref(0);
 const amount = ref("");
 const recipientAddress = ref("");
 
+// Get all unique tokens from routes
+const availableTokens = computed(() => {
+  return Array.from(new Set(routes.map((route) => route.denom))).map((denom) => ({
+    name: denom === "uatone"
+      ? "ATONE"
+      : "PHOTON",
+    denom: denom,
+    status: "active"
+  }));
+});
+
+// Get all unique source chains
+const allSources = computed(() => {
+  return Array.from(new Set(routes.map((route) => route.src))).map((src) => ({
+    name: src,
+    status: "active"
+  }));
+});
+
+// Get filtered source chains based on selected token
 const itemsSrc = computed(() => {
-  return routes.map((route) => ({
-    name: route.src,
-    status: "active"
-  }));
+  const selectedToken = availableTokens.value[tokenIndex.value]?.denom;
+  if (!selectedToken) {
+    return allSources.value;
+  }
+
+  const validSources = routes.
+    filter((route) => route.denom === selectedToken).
+    map((route) => route.src);
+
+  return allSources.value.filter((src) => validSources.includes(src.name));
 });
+
+// Get filtered destinations based on selected source and token
 const itemsDest = computed(() => {
-  return routes[srcIndex.value].dest.map((dest) => ({
-    name: dest,
-    status: "active"
-  }));
+  const selectedSrc = itemsSrc.value[srcIndex.value]?.name;
+  if (!selectedSrc) {
+    return [];
+  }
+
+  let validRoutes = routes.filter((route) => route.src === selectedSrc);
+
+  // If a token is selected, filter by token as well
+  const selectedToken = availableTokens.value[tokenIndex.value]?.denom;
+  if (selectedToken) {
+    validRoutes = validRoutes.filter((route) => route.denom === selectedToken);
+  }
+
+  const destinations = Array.from(new Set(validRoutes.map((route) => route.dest)));
+  return destinations.map((dest) => ({ name: dest,
+    status: "active" }));
 });
+
 const handleSrcIndexChange = (index: number) => {
   srcIndex.value = index;
+  // Reset destination if it's no longer valid
+  if (destIndex.value >= itemsDest.value.length) {
+    destIndex.value = 0;
+  }
 };
+
 const handleDestIndexChange = (index: number) => {
   destIndex.value = index;
 };
@@ -42,6 +88,15 @@ const handleTokenIndexChange = (index: number) => {
     amount.value = "";
   }
   tokenIndex.value = index;
+
+  // Reset src if it's no longer valid
+  if (srcIndex.value >= itemsSrc.value.length) {
+    srcIndex.value = 0;
+  }
+  // Reset dest if it's no longer valid
+  if (destIndex.value >= itemsDest.value.length) {
+    destIndex.value = 0;
+  }
 };
 
 const balancesFetcher = (address: Ref<string>) => fetch(`${chainConfig.rest}cosmos/bank/v1beta1/balances/${address.value}?pagination.limit=1000`).then((response) => response.json());
@@ -58,9 +113,9 @@ const balance = computed(() => {
   }
 });
 const max = computed(() => {
-  const tokenDenom = tokenIndex.value === 0
-    ? "uatone"
-    : "uphoton";
+  if (!availableTokens.value[tokenIndex.value]) return "0";
+
+  const tokenDenom = availableTokens.value[tokenIndex.value].denom;
   const tokenBalance = balance.value.balances?.find((b: { denom: string }) => b.denom === tokenDenom);
   return tokenBalance
     ? (Number(tokenBalance.amount) / Math.pow(
@@ -75,15 +130,20 @@ const handleButtonClick = () => {
     bus.emit("open");
   } else {
     const { createBridge } = useBridges();
-    createBridge(
-      routes[srcIndex.value].src.toLowerCase(),
-      routes[srcIndex.value].dest[destIndex.value].toLowerCase(),
-      recipientAddress.value,
-      tokenIndex.value === 0
-        ? "uatone"
-        : "uphoton",
-      amount.value
-    );
+
+    const selectedSrc = itemsSrc.value[srcIndex.value]?.name;
+    const selectedDest = itemsDest.value[destIndex.value]?.name;
+    const selectedToken = availableTokens.value[tokenIndex.value]?.denom;
+
+    if (selectedSrc && selectedDest && selectedToken) {
+      createBridge(
+        selectedSrc.toLowerCase(),
+        selectedDest.toLowerCase(),
+        recipientAddress.value,
+        selectedToken,
+        amount.value
+      );
+    }
   }
 };
 </script>
@@ -98,10 +158,7 @@ const handleButtonClick = () => {
       <div class="flex flex-col mb-4">
         <span class="mb-2 text-sm text-grey-100">Select Token:</span>
         <DropDown
-          :items="[
-            { name: 'ATONE', status: 'active' },
-            { name: 'PHOTON', status: 'active' }
-          ]"
+          :items="availableTokens"
           :model-value="tokenIndex"
           @select="handleTokenIndexChange"
         />
