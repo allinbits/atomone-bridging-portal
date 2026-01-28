@@ -1,8 +1,10 @@
 <script lang="ts" setup>
+import EthWalletConnect from "@/components/popups/EthWalletConnect.vue";
 import Mint from "@/components/popups/Mint.vue";
 import WalletConnect from "@/components/popups/WalletConnect.vue";
 import AuditStatus from "@/components/warnings/AuditStatus.vue";
 import { useWallet } from "@/composables/useWallet.ts";
+
 const Wallet = useWallet();
 const securityLink = "https://github.com/allinbits/security/";
 </script>
@@ -25,6 +27,7 @@ const securityLink = "https://github.com/allinbits/security/";
           v-if="Wallet.loggedIn.value"
           class="flex-grow"
         />
+        <EthWalletConnect class="hidden md:block" />
         <WalletConnect class="hidden md:block" />
       </div>
     </nav>

@@ -55,6 +55,24 @@ export const messages = {
         noPhoton:
           "You currently have 0 PHOTON. Soon you will only be able to pay with TXs with PHOTON. Click here to learn more and find out how to mint PHOTON."
       },
+      EthWalletConnect: {
+        button: "Connect ETH Wallet",
+        cta: "Connect your Ethereum wallet",
+        balance: "Balance",
+        network: "Network",
+        disconnect: "Disconnect wallet",
+        connecting: "Connecting wallet",
+        wait: "Please wait...",
+        trouble: "Troubleshooting",
+        retry: "Try again",
+        failed: "Connection Failed",
+        failedSub: "Was not able to connect to your Ethereum wallet",
+        selectWallet: "Select a wallet to connect",
+        cosmosWallets: "Cosmos Wallets with EVM Support",
+        evmWallets: "EVM Wallets",
+        browserWallet: "Browser Wallet",
+        noWallet: "No Ethereum wallet detected. Please install MetaMask, Keplr, or another wallet extension with EVM support."
+      },
       Breakdown: {
         moniker: "Moniker",
         voter: "Voter",
