@@ -1,36 +1,42 @@
-# AtomOne Staking Portal
+# AtomOne Bridging Portal
 
-The AtomOne Staking Portal is a platform facilitating web-based management of tokens (or stake) delegation, re-delegation, un-delegation operations and claiming of rewards on the AtomOne chain. Prioritizing security, AtomOne encourages the use of CLI commands for interactions with the portal, using your wallet of choice or a public address you can gain immediate access to AtomOne's staking functionalities. 
+The AtomOne Bridging Portal is a platform facilitating web-based cross-chain token transfers between AtomOne and EVM chains (Ethereum, Base). Prioritizing security, AtomOne encourages the use of CLI commands for interactions with the portal. Using your wallet of choice or a public address, you can gain immediate access to AtomOne's bridging functionalities.
 
-Our goal with the AtomOne Staking Portal is to empower the community to effortlessly participate in staking thus ensuring the security of the network while making it more accessible to engage, regardless of their technical expertise or background.
+Our goal with the AtomOne Bridging Portal is to empower the community to effortlessly move ATONE and PHOTON tokens between AtomOne and Ethereum ecosystems, making cross-chain interactions accessible regardless of technical expertise or background.
 
 ## Usage
 
-You can visit the deployed portal at [https://staking.atom.one/](https://staking.atom.one/).
+You can visit the deployed portal at [https://bridge.atom.one/](https://bridge.atom.one/).
 
 The following is a showcase of the existing functionality.
 
 ### Homepage
 
-Homepage loads a list of all validators on the AtomOne chain. They are ordered by total delegation amount with active ones first and inactive ones after.
+The homepage provides the bridging interface allowing you to transfer tokens between supported chains.
 
-The list displays the validator moniker, the operator address, the total delegated power, their current status and whether they are currently jailed or not.
+You can connect two types of wallets:
+- **Cosmos Wallets** (Keplr, Leap, Cosmostation) - For AtomOne chain interactions
+- **Ethereum Wallets** (MetaMask, Coinbase Wallet, Rabby, or Keplr/Leap EVM) - For Ethereum/Base chain interactions
 
-The last 3 columns are only available once you have connected your wallet. Either Keplr/Cosmostation or Leap or simply entering your public AtomOne address.
+### Supported Routes
 
-These are your current delegations to that validator, your pending rewards and a list of action buttons: 
-- Stake (to delegate to that validator): Brings up a form to enter the amount you wish to delegate.
-- Redelegate (to redelegate away from that validator): Brings up a form to enter the amount you wish to redelegate and to select the validator you want to redelegate to.
-- Unstake (to undelegate from that validator): Brings up a form to enter the amount you wish to undelegate.
-- Claim Rewards (to claim teh rewards from that validator): Brings up a form to claim the rewards from that validator.
-  
-At the bottom of the validator list there is also a button to Claim All Rewards across all validators.
+The portal supports the following bridging routes:
+- **AtomOne → Ethereum**: Bridge ATONE or PHOTON tokens to Ethereum as ERC20 tokens
+- **Ethereum → AtomOne**: Bridge ERC20 ATONE or PHOTON tokens back to AtomOne
 
-All the actions above can be completed by either signing with the connected wallet (Keplr/Leap/Cosmostation) or generating a CLI command to build the Tx using the `atomoned` executable and signing securely offline as described in our [How to submit Transactions securely](https://github.com/atomone-hub/atom.one/blob/main/content/english/submit-tx-securely.md) guide.
+### Bridging Process
+
+1. Connect your source chain wallet (Cosmos wallet for AtomOne, Ethereum wallet for EVM chains)
+2. Select the source and destination chains
+3. Choose the token you wish to bridge (ATONE or PHOTON)
+4. Enter the amount and recipient address
+5. Complete the transaction by signing with your connected wallet or generating a CLI command
+
+All actions can be completed by either signing with the connected wallet or generating a CLI command to build the transaction using the `atomoned` executable and signing securely offline as described in our [How to submit Transactions securely](https://github.com/atomone-hub/atom.one/blob/main/content/english/submit-tx-securely.md) guide.
 
 ## Local deployment
 
-If you don't want to use the deployed version, you can deploy it locally. The only requirements are `node` v18+ and `pnpm`.
+If you don't want to use the deployed version, you can deploy it locally. The only requirements are `node` v20+ and `pnpm`.
 
 First, clone the repo using your favorite git tool.
 
@@ -48,6 +54,6 @@ pnpm dev
 
 ## Bugs & Feedback
 
-Please use [Github Issues](https://github.com/allinbits/atomone-staking-portal/issues) to inform us of any bugs or issues you encounter and to request features and improvements.
+Please use [Github Issues](https://github.com/allinbits/atomone-bridging-portal/issues) to inform us of any bugs or issues you encounter and to request features and improvements.
 
 Thank you.
