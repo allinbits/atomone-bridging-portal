@@ -63,14 +63,18 @@ const props = withDefaults(
 
 const focused = ref(false);
 
-const MinValue = (val: number) => Math.min(
-  props.max,
-  val
-);
-const MaxValue = (val: number) => Math.max(
-  props.min,
-  val
-);
+const MinValue = (val: number) => {
+  return Math.min(
+    props.max,
+    val
+  );
+};
+const MaxValue = (val: number) => {
+  return Math.max(
+    props.min,
+    val
+  );
+};
 
 const emit = defineEmits([
   "update:modelValue",

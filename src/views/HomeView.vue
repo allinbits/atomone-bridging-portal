@@ -8,10 +8,12 @@ import CommonButton from "@/components/ui/CommonButton.vue";
 import DropDown from "@/components/ui/DropDown.vue";
 import UiInput from "@/components/ui/UiInput.vue";
 import { useBridges } from "@/composables/useBridge.ts";
+import { useEthWallet } from "@/composables/useEthWallet";
 import { useWallet } from "@/composables/useWallet";
 import routes from "@/routes.json";
 
 const Wallet = useWallet();
+const EthWallet = useEthWallet();
 const srcIndex = ref(0);
 const destIndex = ref(0);
 const tokenIndex = ref(0);
@@ -103,7 +105,7 @@ const balancesFetcher = (address: Ref<string>) => fetch(`${chainConfig.rest}cosm
 const { data: balances } = useQuery({
   queryKey: ["balances"],
   queryFn: () => balancesFetcher(Wallet.address),
-  enabled: Wallet.loggedIn.value
+  enabled: Wallet.loggedIn
 });
 const balance = computed(() => {
   if (balances && balances.value) {
@@ -112,10 +114,43 @@ const balance = computed(() => {
     return [];
   }
 });
+
+// Ethereum token balances
+const { data: ethAtoneBalance } = useQuery({
+  queryKey: ["eth-atone-balance"],
+  queryFn: () => EthWallet.getAtoneBalance(),
+  enabled: EthWallet.loggedIn
+});
+const { data: ethPhotonBalance } = useQuery({
+  queryKey: ["eth-photon-balance"],
+  queryFn: () => EthWallet.getPhotonBalance(),
+  enabled: EthWallet.loggedIn
+});
+const isAmountInputDisabled = computed(() => {
+  const selectedSrc = itemsSrc.value[srcIndex.value]?.name;
+  if (selectedSrc === "Ethereum") {
+    return !EthWallet.loggedIn.value;
+  }
+  return !Wallet.loggedIn.value;
+});
+
 const max = computed(() => {
   if (!availableTokens.value[tokenIndex.value]) return "0";
 
   const tokenDenom = availableTokens.value[tokenIndex.value].denom;
+  const selectedSrc = itemsSrc.value[srcIndex.value]?.name;
+  console.log(ethAtoneBalance);
+  // If source is Ethereum, use Ethereum token balances
+  if (selectedSrc === "Ethereum") {
+    if (tokenDenom === "uatone") {
+      return ethAtoneBalance?.value || "0";
+    } else if (tokenDenom === "uphoton") {
+      return ethPhotonBalance?.value || "0";
+    }
+    return "0";
+  }
+
+  // Otherwise use AtomOne balances
   const tokenBalance = balance.value.balances?.find((b: { denom: string }) => b.denom === tokenDenom);
   return tokenBalance
     ? (Number(tokenBalance.amount) / Math.pow(
@@ -123,6 +158,36 @@ const max = computed(() => {
       chainConfig.currencies.find((c) => c.coinMinimalDenom.toLowerCase() === tokenDenom)?.coinDecimals || 0
     )).toString()
     : "0";
+});
+
+// Validation function for recipient address
+const validateRecipientAddress = computed(() => {
+  if (!recipientAddress.value) {
+    return { isValid: true,
+      error: "" }; // Empty is valid (user hasn't entered yet)
+  }
+
+  const address = recipientAddress.value.trim();
+  const selectedDest = itemsDest.value[destIndex.value]?.name;
+
+  // Ethereum address validation (0x followed by 40 hex characters)
+  if (selectedDest === "Ethereum") {
+    const ethRegex = /^0x[a-fA-F0-9]{40}$/;
+    if (!ethRegex.test(address)) {
+      return { isValid: false,
+        error: "Invalid Ethereum address format" };
+    }
+  } else {
+    // AtomOne address validation (bech32 format)
+    const cosmosRegex = /^atone1[a-z0-9]{38,58}$/;
+    if (!cosmosRegex.test(address)) {
+      return { isValid: false,
+        error: "Invalid AtomOne address format" };
+    }
+  }
+
+  return { isValid: true,
+    error: "" };
 });
 
 const handleButtonClick = () => {
@@ -141,7 +206,10 @@ const handleButtonClick = () => {
         selectedDest.toLowerCase(),
         recipientAddress.value,
         selectedToken,
-        amount.value
+        Number(amount.value) * Math.pow(
+          10,
+          chainConfig.currencies.find((c) => c.coinMinimalDenom.toLowerCase() === selectedToken)?.coinDecimals || 0
+        ) + ""
       );
     }
   }
@@ -194,12 +262,13 @@ const handleButtonClick = () => {
             type="number"
             placeholder="Enter amount"
             class="w-full"
+            :min="0"
             :max="Number(max)"
-            :disabled="!Wallet.loggedIn.value"
+            :disabled="isAmountInputDisabled"
           />
           <!-- Tooltip for disabled state -->
           <div
-            v-if="!Wallet.loggedIn.value"
+            v-if="isAmountInputDisabled"
             class="absolute left-1/2 -translate-x-1/2 bottom-full  px-3 py-2 bg-red-400 text-light text-75 italic font-medium rounded-sm shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10"
           >
             Connect your wallet to enter an amount
@@ -211,24 +280,15 @@ const handleButtonClick = () => {
       <!-- Recipient Address Input -->
       <div class="flex flex-col mb-4">
         <span class="mb-2 text-sm text-grey-100">Recipient Address:</span>
-        <div class="relative group">
-          <UiInput
-            :model-value="recipientAddress"
-            @update:model-value="recipientAddress = $event"
-            type="text"
-            placeholder="Enter recipient address"
-            class="w-full"
-            :disabled="!Wallet.loggedIn.value"
-          />
-          <!-- Tooltip for disabled state -->
-          <div
-            v-if="!Wallet.loggedIn.value"
-            class="absolute left-1/2 -translate-x-1/2 bottom-full px-3 py-2 bg-red-400 text-light text-75 italic font-medium rounded-sm shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10"
-          >
-            Connect your wallet to enter a recipient address
-            <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-red-400"></div>
-          </div>
-        </div>
+        <UiInput
+          :model-value="recipientAddress"
+          @update:model-value="recipientAddress = $event"
+          type="text"
+          placeholder="Enter recipient address"
+          class="w-full"
+          :is-error="!validateRecipientAddress.isValid"
+          :error-message="validateRecipientAddress.error"
+        />
       </div>
 
       <!-- Bridge / Connect Button -->

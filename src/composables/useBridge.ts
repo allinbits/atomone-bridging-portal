@@ -1,8 +1,14 @@
+import { EncodeObject } from "@cosmjs/proto-signing";
+import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
+import { RpcTransactionRequest } from "viem";
+
 import { useWallet } from "@/composables/useWallet";
 import { makeAtoneToEthTransaction } from "@/ics20/a1-eth-hook.ts";
 import { BASE_ZKGM_ADDRESS, ETH_ZKGM_ADDRESS } from "@/ics20/constants.ts";
 import { makeEthToAtoneTransaction } from "@/ics20/eth-a1-hook.ts";
 import routes from "@/routes.json";
+
+import { useEthWallet } from "./useEthWallet.ts";
 
 const buildBridgeInfo = async (src: string, dest: string, rcpt: string, sender: string, denom: string, amount: string) => {
   const route = routes.find((r) => r.src.toLowerCase() === src.toLowerCase() && r.dest.toLowerCase() === dest.toLowerCase() && denom === r.denom);
@@ -41,41 +47,68 @@ const buildBridgeInfo = async (src: string, dest: string, rcpt: string, sender: 
 
 export const useBridges = () => {
   const createBridge = async (src: string, dest: string, rcpt: string, denom: string, amount: string) => {
-    const { address } = useWallet();
-    const { memo, receiver } = await buildBridgeInfo(
-      src,
-      dest,
-      rcpt,
-      address.value,
-      denom,
-      amount
-    );
-    console.log({ memo,
-      receiver,
-      denom,
-      amount });
+    if (src === "atomone") {
+      const { sendTx, address } = useWallet();
+      const { memo, receiver } = await buildBridgeInfo(
+        src,
+        dest,
+        rcpt,
+        address.value,
+        denom,
+        amount
+      );
+      console.log({ memo,
+        receiver,
+        denom,
+        amount });
 
-    /*
-     *const msg = MsgTransfer.fromPartial({
-     *  sender: address.value,
-     *  sourcePort: "transfer",
-     *  sourceChannel: "channel-2",
-     *  token: {
-     *    denom,
-     *    amount: amount + ""
-     *  },
-     *  receiver,
-     *  memo: JSON.stringify(memo),
-     *  timeoutHeight: undefined,
-     *  timeoutTimestamp: BigInt(Date.now() + 10 * 60 * 1000) * BigInt(1_000_000) // 10 minutes from now
-     *});
-     *const transfer: EncodeObject = {
-     *  typeUrl: "/ibc.applications.transfer.v1.MsgTransfer",
-     *  value: msg
-     *};
-     *console.log(transfer);
-     */
-    // return sendTx([transfer]);
+
+      const msg = MsgTransfer.fromPartial({
+        sender: address.value,
+        sourcePort: "transfer",
+        sourceChannel: "channel-2",
+        token: {
+          denom,
+          amount: amount + ""
+        },
+        receiver,
+        memo: JSON.stringify(memo),
+        timeoutHeight: undefined,
+        timeoutTimestamp: BigInt(Date.now() + 10 * 60 * 1000) * BigInt(1_000_000) // 10 minutes from now
+      });
+      const transfer: EncodeObject = {
+        typeUrl: "/ibc.applications.transfer.v1.MsgTransfer",
+        value: msg
+      };
+      console.log(transfer);
+
+      return sendTx([transfer]);
+    }
+    if (src === "ethereum") {
+      const { address, walletClient } = useEthWallet();
+      const { memo, receiver } = await buildBridgeInfo(
+        src,
+        dest,
+        rcpt,
+        address.value,
+        denom,
+        amount
+      );
+      console.log({ memo,
+        receiver,
+        denom,
+        amount });
+
+      const [account] = await walletClient.value!.getAddresses();
+
+      return walletClient.value?.sendTransaction({
+        to: receiver as `0x${string}`,
+        value: BigInt(0),
+        data: (memo as RpcTransactionRequest).data,
+        account,
+        chain: undefined
+      });
+    }
   };
   return { createBridge };
 };
