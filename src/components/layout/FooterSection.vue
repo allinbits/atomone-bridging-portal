@@ -14,7 +14,7 @@ const links = [
 
 <template>
   <div class="flex flex-col md:flex-row justify-between pt-[72px] pb-12 text-200 md:text-100 text-grey-100">
-    <span>&copy; All in Bits 2024</span>
+    <span>&copy; All in Bits 2026</span>
     <div class="flex flex-col gap-4">
       <!-- Text -->
       <span class="flex md:justify-end">{{ $t("components.FooterSection.cta") }}</span>

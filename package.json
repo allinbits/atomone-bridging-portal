@@ -38,6 +38,8 @@
     "dayjs": "^1.11.19",
     "dompurify": "^3.3.1",
     "effect": "^3.19.14",
+    "markdown-it": "^14.1.0",
+    "markdown-it-github-alert": "^1.0.6",
     "viem": "^2.44.4",
     "vite-plugin-node-polyfills": "^0.24.0",
     "vue": "^3.5.26",

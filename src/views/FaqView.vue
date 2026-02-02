@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import markdownit from "markdown-it";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -16,6 +17,12 @@ const faqContent = computed(() => {
     return currentMessages.faqPage.content;
   }
   return [];
+});
+
+const md = markdownit({
+  html: true,
+  linkify: true,
+  typographer: true
 });
 </script>
 <template>

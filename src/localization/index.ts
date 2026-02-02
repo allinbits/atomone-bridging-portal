@@ -73,87 +73,14 @@ export const messages = {
         browserWallet: "Browser Wallet",
         noWallet: "No Ethereum wallet detected. Please install MetaMask, Keplr, or another wallet extension with EVM support."
       },
-      Breakdown: {
-        moniker: "Moniker",
-        voter: "Voter",
-        answer: "Answer",
-        txHash: "TX Hash",
-        weight: "Weight",
-        time: "Time",
-        hasNotVoted: "HAS NOT VOTED"
-      },
       FooterSection: {
         cta: "Be a part of the conversation"
-      },
-      Search: {
-        placeholder: "Search Proposal"
-      },
-      Delegate: {
-        cta: "Stake",
-        delegated: "You staked",
-        error: "Error"
       },
       Mint: {
         cta: "Mint Photon",
         minted: "Minted",
         toReceive: "You will receive:",
         error: "Error"
-      },
-      Claim: {
-        cta: "Claim Rewards",
-        ctamulti: "Claim All Rewards",
-        claimed: "Claimed Rewards",
-        error: "Error"
-      },
-      Redelegate: {
-        cta: "Redelegate",
-        redelegated: "You redelegated",
-        error: "Error"
-      },
-      Undelegate: {
-        cta: "Unstake",
-        undelegated: "You unstaked",
-        error: "Error"
-      },
-      ProposalVote: {
-        cta: "Vote",
-        voted: "You voted",
-        error: "Error",
-        weightedInstructions: "Define weight for each of the voting options. The sum of weights must be equal to 1."
-      },
-      ProposalDeposit: {
-        cta: "Deposit",
-        act: "deposited",
-        deposited: "You deposited",
-        error: "Error",
-        instructions: "Enter deposit amount"
-      },
-      VotePanel: {
-        breakdown: "Breakdown",
-        noVotes: "No votes have been recorded."
-      },
-      GithubComments: {
-        signInLong: "Sign in via GitHub to be able to post messages",
-        signIn: "Github Sign In",
-        signOut: "Sign Out",
-        proposalDiscussion: "Proposal Discussion",
-        upvoteRatio: "Upvote Ratio",
-        totalComments: "Total Comment(s)",
-        viewOnGithub: "View on GitHub",
-        postComment: "Post Comment"
-      },
-      GithubLinks: {
-        communityLinks: "Community Links",
-        signIn: "GitHub Sign In",
-        signOut: "GitHub Sign Out",
-        addLink: "Add Link",
-        upvoteRatio: "Upvote Ratio",
-        totalLinks: "Total Link(s)",
-        link: "Link",
-        invalidHttpsLink: "Link is not valid, must be HTTPS",
-        invalidLinkContentLength: "Content length must be at least 32 characters",
-        cancel: "Cancel",
-        post: "Post"
       }
     },
     ui: {
@@ -172,17 +99,6 @@ export const messages = {
       },
       buttons: {
         back: "Back"
-      },
-      tabs: {
-        Info: "Info",
-        Voters: "Voters",
-        Discussions: "Discussions",
-        Description: "Description",
-        Links: "Links",
-        Yes: "Yes",
-        No: "No",
-        Veto: "Veto",
-        Abstain: "Abstain"
       }
     }
   }

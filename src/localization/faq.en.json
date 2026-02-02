@@ -1,42 +1,42 @@
 [
   {
-    "question": "What is the AtomOne Staking Portal?",
-    "answer": "The AtomOne Staking Portal is a seamlessly integrated web based interface empowering secure and efficient delegation, re-delegation, un-delegation operations and claiming of rewards on the AtomOne chain."
+    "question": "What is the AtomOne Bridging Portal?",
+    "answer": "The AtomOne Bridging Portal is a seamlessly integrated web based interface empowering secure and efficient delegation, re-delegation, un-delegation operations and claiming of rewards on the AtomOne chain."
   },
   {
-    "question": "What is the purpose of the AtomOne Staking Portal?",
-    "answer": "The objective of the AtomOne Staking Portal is to ensure that users, even non-technical, can easily participate in the delegation process while engaging securely, without compromising private keys. Prioritizing security, AtomOne encourages the use of CLI commands for interactions with the portal, using your wallet of choice or a public address you can gain immediate access to AtomOne's staking functionalities."
+    "question": "What is the purpose of the AtomOne Bridging Portal?",
+    "answer": "The objective of the AtomOne Bridging Portal is to ensure that users, even non-technical, can easily participate in the delegation process while engaging securely, without compromising private keys. Prioritizing security, AtomOne encourages the use of CLI commands for interactions with the portal, using your wallet of choice or a public address you can gain immediate access to AtomOne's staking functionalities."
   },
   {
-    "question": "How does the AtomOne Staking Portal encourage community engagement?",
-    "answer": "The AtomOne Staking Portal allows users, regardless of their technical expertise, to participate in delegation on AtomOne on an easy to follow interface."
+    "question": "How does the AtomOne Bridging Portal encourage community engagement?",
+    "answer": "The AtomOne Bridging Portal allows users, regardless of their technical expertise, to participate in delegation on AtomOne on an easy to follow interface."
   },
   {
     "question": "Is the AtomOne token transferable?",
     "answer": "ATONE token is transferrable from one account to another. However, at this moment IBC transfers are not enabled. Once the community agrees to enable IBC transfers, ATONE token would be transferable using IBC. "
   },
   {
-    "question": "Which wallets support AtomOne Staking Portal?",
-    "answer": "In addition to using the AtomOne CLI (recommended method of signing), users of the AtomOne Staking Portal are also able to delegate, un-delegate, redelegate or claim rewards by connecting any of their Keplr, Leap or Cosmostation wallets."
+    "question": "Which wallets support AtomOne Bridging Portal?",
+    "answer": "In addition to using the AtomOne CLI (recommended method of signing), users of the AtomOne Bridging Portal are also able to delegate, un-delegate, redelegate or claim rewards by connecting any of their Keplr, Leap or Cosmostation wallets."
   },
   {
-    "question": "What is the safest way to interact with the AtomOne Staking Portal?",
-    "answer": "The AtomOne Staking Portal was built so that you are never asked to share a private key, any seed or recovery phrase. Users of the AtomOne Staking Portal are encouraged to follow the best practices for signing and broadcasting transactions by using the AtomOne CLI."
+    "question": "What is the safest way to interact with the AtomOne Bridging Portal?",
+    "answer": "The AtomOne Bridging Portal was built so that you are never asked to share a private key, any seed or recovery phrase. Users of the AtomOne Bridging Portal are encouraged to follow the best practices for signing and broadcasting transactions by using the AtomOne CLI."
   },
   {
-    "question": "What types of operations am I able to perform within the AtomOne Staking Portal today?",
+    "question": "What types of operations am I able to perform within the AtomOne Bridging Portal today?",
     "answer": "You are currently able to connect your wallet, review validator statistics and delegate, un-delegate, redelegate tokens to a validator and claim rewards."
   },
   {
-    "question": "What is the future plan for the AtomOne Staking Portal?",
+    "question": "What is the future plan for the AtomOne Bridging Portal?",
     "answer": "Open-sourcing of the project, licensing decisions, and the completion of documentation will be the next steps. Ongoing improvements and maintenance, including security enhancements, documentation updates, and bug fixes will be the priority after."
   },
   {
-    "question": "Is AtomOne Staking Portal open-source?",
+    "question": "Is AtomOne Bridging Portal open-source?",
     "answer": "Yes. You can find the code and licensing information in its GitHub repo [here](https://github.com/allinbits/atomone-staking-portal)."
   },
   {
-    "question": "How secure is the AtomOne Staking Portal?",
+    "question": "How secure is the AtomOne Bridging Portal?",
     "answer": "An audit is planned, and security improvements are planned for Q1 2025."
   }
 ]

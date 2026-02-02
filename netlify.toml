@@ -7,7 +7,7 @@
   for = "/*"
   [headers.values]
   Access-Control-Allow-Origin = '''
-  https://staking.atom.one,
+  https://bridge.atom.one,
   '''
   Strict-Transport-Security = "max-age=31536000; includeSubDomains"
   Content-Security-Policy = "default-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; img-src 'self' data: https:; connect-src https://atomone-rpc.allinbits.com https://atomone-api.allinbits.com"
