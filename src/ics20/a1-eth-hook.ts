@@ -16,7 +16,7 @@ import * as Match from "effect/Match";
 import * as ParseResult from "effect/ParseResult";
 import * as Schema from "effect/Schema";
 
-import { ATOMONE_SOURCE_CHANNEL_ID, BASE_CHAIN_ID, BASE_ZKGM_ADDRESS, cosmosUcs, ETH_ZKGM_ADDRESS, ETHEREUM_CHAIN_ID, etherUcs, OSMOSIS_CHAIN_ID } from "./constants.ts";
+import { BASE_CHAIN_ID, BASE_ZKGM_ADDRESS, BASEOSMO_SOURCE_CHANNEL_ID, cosmosUcs, ETH_ZKGM_ADDRESS, ETHEREUM_CHAIN_ID, etherUcs, ETHOSMO_SOURCE_CHANNEL_ID, OSMOSIS_CHAIN_ID } from "./constants.ts";
 
 
 export const makeAtoneToEthTransaction = async (src: string, dest: string, sender: string, rcpt: string, amount: bigint, baseToken: string, quoteToken: string, solver_metadata: string) => {
@@ -78,7 +78,9 @@ export const makeAtoneToEthTransaction = async (src: string, dest: string, sende
           : BASE_ZKGM_ADDRESS,
         msg: {
           send: {
-            channel_id: ATOMONE_SOURCE_CHANNEL_ID,
+            channel_id: dest === "ethereum"
+              ? ETHOSMO_SOURCE_CHANNEL_ID
+              : BASEOSMO_SOURCE_CHANNEL_ID,
             timeout_height: "0",
             timeout_timestamp,
             salt,

@@ -171,7 +171,7 @@ const validateRecipientAddress = computed(() => {
   const selectedDest = itemsDest.value[destIndex.value]?.name;
 
   // Ethereum address validation (0x followed by 40 hex characters)
-  if (selectedDest === "Ethereum") {
+  if (selectedDest === "Ethereum" || selectedDest === "Base") {
     const ethRegex = /^0x[a-fA-F0-9]{40}$/;
     if (!ethRegex.test(address)) {
       return { isValid: false,
@@ -190,7 +190,25 @@ const validateRecipientAddress = computed(() => {
     error: "" };
 });
 
-const handleButtonClick = () => {
+const fillRecipientAddress = computed(() => {
+  const selectedDest = itemsDest.value[destIndex.value]?.name;
+  if (selectedDest === "Ethereum" || selectedDest === "Base") {
+    return EthWallet.loggedIn.value
+      ? EthWallet.address.value
+      : "";
+  }
+  return Wallet.loggedIn.value
+    ? Wallet.address.value
+    : "";
+});
+
+const handleFillRecipient = () => {
+  if (fillRecipientAddress.value) {
+    recipientAddress.value = fillRecipientAddress.value;
+  }
+};
+
+const handleButtonClick = async () => {
   if (!Wallet.loggedIn.value) {
     bus.emit("open");
   } else {
@@ -201,7 +219,7 @@ const handleButtonClick = () => {
     const selectedToken = availableTokens.value[tokenIndex.value]?.denom;
 
     if (selectedSrc && selectedDest && selectedToken) {
-      createBridge(
+      await createBridge(
         selectedSrc.toLowerCase(),
         selectedDest.toLowerCase(),
         recipientAddress.value,
@@ -219,7 +237,7 @@ const handleButtonClick = () => {
 <template>
   <div class="flex flex-col w-full min-h-[calc(100vh-200px)] pb-[72px] gap-4 items-center justify-center">
     <!-- Centered Card -->
-    <div class="bg-grey-300 rounded-lg p-8 shadow-lg w-full max-w-md">
+    <div class="bg-grey-300 rounded-lg p-8 shadow-lg w-full max-w-lg">
       <h2 class="text-xl font-semibold mb-6 text-center">Bridge Tokens:</h2>
 
       <!-- Token Selection -->
@@ -280,15 +298,27 @@ const handleButtonClick = () => {
       <!-- Recipient Address Input -->
       <div class="flex flex-col mb-4">
         <span class="mb-2 text-sm text-grey-100">Recipient Address:</span>
-        <UiInput
-          :model-value="recipientAddress"
-          @update:model-value="recipientAddress = $event"
-          type="text"
-          placeholder="Enter recipient address"
-          class="w-full"
-          :is-error="!validateRecipientAddress.isValid"
-          :error-message="validateRecipientAddress.error"
-        />
+        <div class="flex gap-2 items-start">
+          <div class="w-full min-w-0">
+            <UiInput
+              :model-value="recipientAddress"
+              @update:model-value="recipientAddress = $event"
+              type="text"
+              placeholder="Enter recipient address"
+              class="w-full"
+              :is-error="!validateRecipientAddress.isValid"
+              :error-message="validateRecipientAddress.error"
+            />
+          </div>
+          <CommonButton
+            :disabled="!fillRecipientAddress"
+            :title="fillRecipientAddress ? 'Use my wallet address' : 'Connect the destination wallet first'"
+            class="shrink-0 mt-3 px-3 py-5 rounded-md text-sm font-medium border border-transparent transition-colors"
+            @click="handleFillRecipient"
+          >
+            My Address
+          </CommonButton>
+        </div>
       </div>
 
       <!-- Bridge / Connect Button -->

@@ -28,7 +28,7 @@ import * as ParseResult from "effect/ParseResult";
 import * as Schema from "effect/Schema";
 import { bytesToHex, encodeAbiParameters, fromHex, keccak256 } from "viem";
 
-import { ATOMONE_SOURCE_CHANNEL_ID, BASE_BYTECODE_BASE_CHECKSUM, BASE_CHAIN_ID, BASE_MODULE_HASH, BASE_SOURCE_CHANNEL_ID, CANONICAL_BASE_ZKGM, CANONICAL_ETH_ZKGM, cosmosUcs, ETH_BYTECODE_BASE_CHECKSUM, ETH_MODULE_HASH, ETH_SOURCE_CHANNEL_ID, ETHEREUM_CHAIN_ID, etherUcs, OSMOSIS_CHAIN_ID, OSMOSIS_TO_ATOMONE_CHANNEL, UCS03_BASE_EVM, UCS03_ETH_EVM } from "./constants.ts";
+import { BASE_BYTECODE_BASE_CHECKSUM, BASE_CHAIN_ID, BASE_MODULE_HASH, BASE_SOURCE_CHANNEL_ID, BASEOSMO_SOURCE_CHANNEL_ID, CANONICAL_BASE_ZKGM, CANONICAL_ETH_ZKGM, cosmosUcs, ETH_BYTECODE_BASE_CHECKSUM, ETH_MODULE_HASH, ETH_SOURCE_CHANNEL_ID, ETHEREUM_CHAIN_ID, etherUcs, ETHOSMO_SOURCE_CHANNEL_ID, OSMOSIS_CHAIN_ID, OSMOSIS_TO_ATOMONE_CHANNEL, UCS03_BASE_EVM, UCS03_ETH_EVM } from "./constants.ts";
 
 /**
  * Generate a deterministic Union cosmos address from an EVM address using instantiate2
@@ -154,9 +154,12 @@ export const makeEthToAtoneTransaction = async (src: string, _dest: string, send
       ? yield* ChainRegistry.byUniversalId(ETHEREUM_CHAIN_ID)
       : yield* ChainRegistry.byUniversalId(BASE_CHAIN_ID);
 
+    const source_channel = src === "ethereum"
+      ? ETHOSMO_SOURCE_CHANNEL_ID
+      : BASEOSMO_SOURCE_CHANNEL_ID;
     const proxy = yield* predictProxy(src)({
       path: 0n,
-      channel: ATOMONE_SOURCE_CHANNEL_ID,
+      channel: source_channel,
       sender: etherUcs(sender)
     });
 

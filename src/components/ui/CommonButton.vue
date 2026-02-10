@@ -7,8 +7,8 @@ const props = defineProps<{ disabled?: boolean }>();
     class="px-6 py-4 rounded-md text-200 font-medium"
     :class="
       props.disabled
-        ? ['bg-grey-500', 'text-grey-100', 'hover:cursor-auto']
-        : ['bg-grey-400', 'text-light', 'hover:text-grey-50', 'hover:cursor-pointer']
+        ? ['bg-grey-200', 'text-grey-100', 'hover:cursor-auto']
+        : ['bg-grey-200', 'text-light', 'hover:text-grey-500', 'hover:bg-light', 'hover:cursor-pointer']
     "
   >
     <slot></slot>
