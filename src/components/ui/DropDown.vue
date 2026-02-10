@@ -27,8 +27,7 @@ const currentItems = computed(() => {
     map((item, index) => ({
       ...item,
       index
-    })).
-    filter((item) => item.index !== model.value);
+    }));
 });
 
 const getStatusColor = (status?: string) => {
