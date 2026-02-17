@@ -8,7 +8,7 @@ import { BASE_ZKGM_ADDRESS, ETH_ZKGM_ADDRESS } from "@/ics20/constants.ts";
 import { makeEthToAtoneTransaction } from "@/ics20/eth-a1-hook.ts";
 import routes from "@/routes.json";
 
-import { useEthWallet } from "./useEthWallet.ts";
+import { type SupportedChain, useEthWallet } from "./useEthWallet.ts";
 
 const buildBridgeInfo = async (src: string, dest: string, rcpt: string, sender: string, denom: string, amount: string) => {
   const route = routes.find((r) => r.src.toLowerCase() === src.toLowerCase() && r.dest.toLowerCase() === dest.toLowerCase() && denom === r.denom);
@@ -90,7 +90,10 @@ export const useBridges = () => {
       return sendTx([transfer]);
     }
     if (src === "ethereum" || src === "base") {
-      const { address, walletClient, ensureAllowance } = useEthWallet();
+      const { address, walletClient, ensureAllowance, switchChain } = useEthWallet();
+
+      await switchChain(src as SupportedChain);
+
       const { memo, receiver, baseToken } = await buildBridgeInfo(
         src,
         dest,
@@ -108,7 +111,8 @@ export const useBridges = () => {
         await ensureAllowance(
           baseToken as `0x${string}`,
           receiver as `0x${string}`,
-          BigInt(amount)
+          BigInt(amount),
+          src as SupportedChain
         );
       }
 

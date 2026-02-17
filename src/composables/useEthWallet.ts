@@ -340,11 +340,14 @@ const useEthWalletInstance = () => {
   const ensureAllowance = async (
     tokenAddress: `0x${string}`,
     spenderAddress: `0x${string}`,
-    amount: bigint
+    amount: bigint,
+    src: SupportedChain = "ethereum"
   ): Promise<void> => {
     if (!activeProvider.value || !address.value || !walletClient.value) {
       throw new Error("Wallet not connected");
     }
+
+    const chain = chainConfig[src];
 
     const allowanceData = encodeFunctionData({
       abi: erc20Abi,
@@ -384,9 +387,7 @@ const useEthWalletInstance = () => {
       account: address.value as `0x${string}`,
       to: tokenAddress,
       data: approveData,
-      chain: chainId.value === base.id
-        ? base
-        : mainnet
+      chain
     });
 
     // Wait for approval tx to be mined before proceeding
