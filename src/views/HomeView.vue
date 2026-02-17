@@ -8,7 +8,7 @@ import CommonButton from "@/components/ui/CommonButton.vue";
 import DropDown from "@/components/ui/DropDown.vue";
 import UiInput from "@/components/ui/UiInput.vue";
 import { useBridges } from "@/composables/useBridge.ts";
-import { useEthWallet } from "@/composables/useEthWallet";
+import { type SupportedChain, useEthWallet } from "@/composables/useEthWallet";
 import { useWallet } from "@/composables/useWallet";
 import routes from "@/routes.json";
 
@@ -73,16 +73,25 @@ const itemsDest = computed(() => {
     status: "active" }));
 });
 
+const switchEvmIfNeeded = (chainName: string | undefined) => {
+  if (!EthWallet.loggedIn.value) return;
+  if (chainName === "Ethereum" || chainName === "Base") {
+    EthWallet.switchChain(chainName.toLowerCase() as SupportedChain);
+  }
+};
+
 const handleSrcIndexChange = (index: number) => {
   srcIndex.value = index;
   // Reset destination if it's no longer valid
   if (destIndex.value >= itemsDest.value.length) {
     destIndex.value = 0;
   }
+  switchEvmIfNeeded(itemsSrc.value[index]?.name);
 };
 
 const handleDestIndexChange = (index: number) => {
   destIndex.value = index;
+  switchEvmIfNeeded(itemsDest.value[index]?.name);
 };
 
 const handleTokenIndexChange = (index: number) => {
@@ -99,6 +108,7 @@ const handleTokenIndexChange = (index: number) => {
   if (destIndex.value >= itemsDest.value.length) {
     destIndex.value = 0;
   }
+  switchEvmIfNeeded(itemsSrc.value[srcIndex.value]?.name);
 };
 
 const balancesFetcher = (address: Ref<string>) => fetch(`${chainConfig.rest}cosmos/bank/v1beta1/balances/${address.value}?pagination.limit=1000`).then((response) => response.json());
@@ -128,7 +138,7 @@ const { data: ethPhotonBalance } = useQuery({
 });
 const isAmountInputDisabled = computed(() => {
   const selectedSrc = itemsSrc.value[srcIndex.value]?.name;
-  if (selectedSrc === "Ethereum") {
+  if (selectedSrc === "Ethereum" || selectedSrc === "Base") {
     return !EthWallet.loggedIn.value;
   }
   return !Wallet.loggedIn.value;
@@ -140,8 +150,8 @@ const max = computed(() => {
   const tokenDenom = availableTokens.value[tokenIndex.value].denom;
   const selectedSrc = itemsSrc.value[srcIndex.value]?.name;
   console.log(ethAtoneBalance);
-  // If source is Ethereum, use Ethereum token balances
-  if (selectedSrc === "Ethereum") {
+  // If source is an EVM chain, use ERC20 token balances
+  if (selectedSrc === "Ethereum" || selectedSrc === "Base") {
     if (tokenDenom === "uatone") {
       return ethAtoneBalance?.value || "0";
     } else if (tokenDenom === "uphoton") {

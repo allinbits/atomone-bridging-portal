@@ -40,8 +40,8 @@ const {
   used
 } = useEthWallet();
 
-// Only fetch balances on Ethereum mainnet (chainId 1)
-const isEthereumMainnet = computed(() => chainId.value === 1);
+// Fetch token balances on chains where ATONE/PHOTON exist
+const isSupportedEvmChain = computed(() => chainId.value === 1 || chainId.value === 8453);
 
 const { data: balance } = useQuery({
   queryKey: [
@@ -58,7 +58,7 @@ const { data: atoneBalance } = useQuery({
     address
   ],
   queryFn: () => getAtoneBalance(),
-  enabled: computed(() => loggedIn.value && isEthereumMainnet.value)
+  enabled: computed(() => loggedIn.value && isSupportedEvmChain.value)
 });
 
 const { data: photonBalance } = useQuery({
@@ -67,7 +67,7 @@ const { data: photonBalance } = useQuery({
     address
   ],
   queryFn: () => getPhotonBalance(),
-  enabled: computed(() => loggedIn.value && isEthereumMainnet.value)
+  enabled: computed(() => loggedIn.value && isSupportedEvmChain.value)
 });
 
 const displayBalance = computed(() => {
@@ -270,7 +270,7 @@ bus.on(
           <div class="flex flex-col justify-around">
             <div class="text-light text-200">{{ shorten(address) }}</div>
             <div class="text-100 text-grey-100">
-              <template v-if="isEthereumMainnet">
+              <template v-if="isSupportedEvmChain">
                 {{ displayAtoneBalance }} ATONE
               </template>
               <template v-else>
@@ -298,7 +298,7 @@ bus.on(
             <div class="text-200 text-grey-100 pt-6 pb-2">{{ $t("components.EthWalletConnect.balance") }}</div>
             <div class="text-300 text-light">
               {{ displayBalance }} ETH
-              <template v-if="isEthereumMainnet">
+              <template v-if="isSupportedEvmChain">
                 <br />
                 {{ displayAtoneBalance }} ATONE
                 <br />
