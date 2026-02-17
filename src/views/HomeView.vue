@@ -74,9 +74,12 @@ const itemsDest = computed(() => {
 });
 
 const switchEvmIfNeeded = (chainName: string | undefined) => {
-  if (!EthWallet.loggedIn.value) return;
   if (chainName === "Ethereum" || chainName === "Base") {
-    EthWallet.switchChain(chainName.toLowerCase() as SupportedChain);
+    const chain = chainName.toLowerCase() as SupportedChain;
+    EthWallet.desiredChain.value = chain;
+    if (EthWallet.loggedIn.value) {
+      EthWallet.switchChain(chain);
+    }
   }
 };
 

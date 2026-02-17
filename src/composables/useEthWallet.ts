@@ -89,6 +89,9 @@ const useEthWalletInstance = () => {
   const used = ref<EthWallets | null>(null);
   const walletClient = ref<WalletClient | null>(null);
 
+  // Track which EVM chain the UI wants (set by dropdown selection)
+  const desiredChain = ref<SupportedChain>("ethereum");
+
   // Store the active provider reference
   const activeProvider: Ref<EIP1193Provider | null> = ref(null);
 
@@ -498,6 +501,7 @@ const useEthWalletInstance = () => {
   return {
     address,
     chainId,
+    desiredChain,
     loggedIn,
     hasAnyProvider,
     hasWindowEthereum,

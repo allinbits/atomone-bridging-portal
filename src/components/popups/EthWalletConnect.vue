@@ -37,7 +37,8 @@ const {
   getBalance,
   getAtoneBalance,
   getPhotonBalance,
-  used
+  used,
+  desiredChain
 } = useEthWallet();
 
 // Fetch token balances on chains where ATONE/PHOTON exist
@@ -145,7 +146,7 @@ const connectWallet = async (wallet: EthWallets) => {
     );
     await connect(
       wallet,
-      props.targetChain ?? "ethereum",
+      props.targetChain ?? desiredChain.value,
       controller.value.signal
     );
     isConnecting.value = false;
