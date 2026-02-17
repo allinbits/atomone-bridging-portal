@@ -16,7 +16,7 @@ const buildBridgeInfo = async (src: string, dest: string, rcpt: string, sender: 
     throw new Error(`Bridge from ${src} to ${dest} with denom ${denom} is not supported.`);
   }
   if (src === "atomone") {
-    return { memo: await makeAtoneToEthTransaction(
+    const { hash, ...memo } = await makeAtoneToEthTransaction(
       src,
       dest,
       sender,
@@ -25,10 +25,14 @@ const buildBridgeInfo = async (src: string, dest: string, rcpt: string, sender: 
       route.baseToken,
       route.quoteToken,
       route.metadata
-    ),
-    receiver: dest === "ethereum"
-      ? ETH_ZKGM_ADDRESS
-      : BASE_ZKGM_ADDRESS };
+    );
+
+    return { memo,
+      hash,
+      baseToken: route.baseToken,
+      receiver: dest === "ethereum"
+        ? ETH_ZKGM_ADDRESS
+        : BASE_ZKGM_ADDRESS };
   } else {
     const tx = await makeEthToAtoneTransaction(
       src,
@@ -41,6 +45,7 @@ const buildBridgeInfo = async (src: string, dest: string, rcpt: string, sender: 
       route.metadata
     );
     return { memo: tx,
+      baseToken: route.baseToken,
       receiver: tx.to as string };
   }
 };
@@ -49,7 +54,7 @@ export const useBridges = () => {
   const createBridge = async (src: string, dest: string, rcpt: string, denom: string, amount: string) => {
     if (src === "atomone") {
       const { sendTx, address } = useWallet();
-      const { memo, receiver } = await buildBridgeInfo(
+      const { memo, receiver, hash } = await buildBridgeInfo(
         src,
         dest,
         rcpt,
@@ -62,7 +67,7 @@ export const useBridges = () => {
         denom,
         amount });
 
-
+      console.log(hash);
       const msg = MsgTransfer.fromPartial({
         sender: address.value,
         sourcePort: "transfer",
@@ -84,9 +89,9 @@ export const useBridges = () => {
 
       return sendTx([transfer]);
     }
-    if (src === "ethereum") {
-      const { address, walletClient } = useEthWallet();
-      const { memo, receiver } = await buildBridgeInfo(
+    if (src === "ethereum" || src === "base") {
+      const { address, walletClient, ensureAllowance } = useEthWallet();
+      const { memo, receiver, baseToken } = await buildBridgeInfo(
         src,
         dest,
         rcpt,
@@ -98,6 +103,14 @@ export const useBridges = () => {
         receiver,
         denom,
         amount });
+
+      if (baseToken.startsWith("0x")) {
+        await ensureAllowance(
+          baseToken as `0x${string}`,
+          receiver as `0x${string}`,
+          BigInt(amount)
+        );
+      }
 
       const [account] = await walletClient.value!.getAddresses();
 

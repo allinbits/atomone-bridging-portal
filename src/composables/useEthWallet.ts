@@ -337,6 +337,72 @@ const useEthWalletInstance = () => {
     }
   };
 
+  const ensureAllowance = async (
+    tokenAddress: `0x${string}`,
+    spenderAddress: `0x${string}`,
+    amount: bigint
+  ): Promise<void> => {
+    if (!activeProvider.value || !address.value || !walletClient.value) {
+      throw new Error("Wallet not connected");
+    }
+
+    const allowanceData = encodeFunctionData({
+      abi: erc20Abi,
+      functionName: "allowance",
+      args: [
+        address.value as `0x${string}`,
+        spenderAddress
+      ]
+    });
+
+    const result = await activeProvider.value.request({
+      method: "eth_call",
+      params: [
+        {
+          to: tokenAddress,
+          data: allowanceData
+        },
+        "latest"
+      ]
+    }) as string;
+
+    const currentAllowance = BigInt(result);
+    if (currentAllowance >= amount) {
+      return;
+    }
+
+    const approveData = encodeFunctionData({
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [
+        spenderAddress,
+        amount
+      ]
+    });
+
+    const hash = await walletClient.value.sendTransaction({
+      account: address.value as `0x${string}`,
+      to: tokenAddress,
+      data: approveData,
+      chain: chainId.value === base.id
+        ? base
+        : mainnet
+    });
+
+    // Wait for approval tx to be mined before proceeding
+    let receipt = null;
+    while (!receipt) {
+      await new Promise((resolve) => setTimeout(
+        resolve,
+        2000
+      ));
+      receipt = await activeProvider.value.request({
+        method: "eth_getTransactionReceipt",
+        params: [hash]
+      });
+    }
+  };
+
   const getAtoneBalance = async (): Promise<string> => {
     if (!ERC20_TOKENS.ATONE.address) return "0";
     return getTokenBalance(
@@ -450,7 +516,8 @@ const useEthWalletInstance = () => {
     getPhotonBalance,
     sendTransaction,
     signMessage,
-    switchChain
+    switchChain,
+    ensureAllowance
   };
 };
 

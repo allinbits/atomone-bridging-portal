@@ -7,6 +7,7 @@ if (typeof BigInt.prototype.toJSON !== "function") {
 }
 import { Call, TokenOrder, Ucs03, Ucs05, Utils, ZkgmInstruction } from "@unionlabs/sdk";
 import { ChainRegistry } from "@unionlabs/sdk/ChainRegistry";
+import { Instruction, PacketFromHex, Ucs03FromHex } from "@unionlabs/sdk/Ucs03";
 import { Cosmos } from "@unionlabs/sdk-cosmos";
 import * as A from "effect/Array";
 import * as Cause from "effect/Cause";
@@ -15,8 +16,9 @@ import { pipe } from "effect/Function";
 import * as Match from "effect/Match";
 import * as ParseResult from "effect/ParseResult";
 import * as Schema from "effect/Schema";
+import { encodeAbiParameters, keccak256, parseAbiParameters } from "viem";
 
-import { BASE_CHAIN_ID, BASE_ZKGM_ADDRESS, BASEOSMO_SOURCE_CHANNEL_ID, cosmosUcs, ETH_ZKGM_ADDRESS, ETHEREUM_CHAIN_ID, etherUcs, ETHOSMO_SOURCE_CHANNEL_ID, OSMOSIS_CHAIN_ID } from "./constants.ts";
+import { BASE_CHAIN_ID, BASE_SOURCE_CHANNEL_ID, BASE_ZKGM_ADDRESS, BASEOSMO_SOURCE_CHANNEL_ID, cosmosUcs, ETH_SOURCE_CHANNEL_ID, ETH_ZKGM_ADDRESS, ETHEREUM_CHAIN_ID, etherUcs, ETHOSMO_SOURCE_CHANNEL_ID, OSMOSIS_CHAIN_ID } from "./constants.ts";
 
 
 export const makeAtoneToEthTransaction = async (src: string, dest: string, sender: string, rcpt: string, amount: bigint, baseToken: string, quoteToken: string, solver_metadata: string) => {
@@ -70,8 +72,44 @@ export const makeAtoneToEthTransaction = async (src: string, dest: string, sende
     const salt = yield* Utils.generateSalt("cosmos");
     const timeout_timestamp = Utils.getTimeoutInNanoseconds24HoursFromNow();
     const instruction = yield* encodeInstruction(tokenOrder).pipe(Effect.flatMap(Schema.encode(Ucs03.Ucs03WithInstructionFromHex)));
+    const packet = yield* Schema.encode(PacketFromHex)(Ucs03.Packet.make({
+      salt,
+      path: 0n,
+      instruction: Instruction.make({
+        opcode: 3,
+        version: 2,
+        operand: yield* Schema.encode(Ucs03FromHex)(yield* TokenOrder.encodeV2(tokenOrder))
+      })
+    }));
+
+    console.log(packet);
+    const packetAbi = parseAbiParameters("(uint32 sourceChannelId, uint32 destinationChannelId, bytes data, uint64 timeoutHeight, uint64 timeoutTimestamp)[]");
+
+    const raw = encodeAbiParameters(
+      packetAbi,
+      [
+        [
+          {
+            sourceChannelId: dest === "ethereum"
+              ? ETH_SOURCE_CHANNEL_ID
+              : BASE_SOURCE_CHANNEL_ID,
+            destinationChannelId: dest === "ethereum"
+              ? ETHOSMO_SOURCE_CHANNEL_ID
+              : BASEOSMO_SOURCE_CHANNEL_ID,
+            data: packet,
+            timeoutHeight: 0n,
+            timeoutTimestamp: timeout_timestamp
+          }
+        ]
+      ]
+    );
+
+    console.log(raw);
+
+    const hash = keccak256(raw);
 
     return {
+      hash,
       wasm: {
         contract: dest === "ethereum"
           ? ETH_ZKGM_ADDRESS
