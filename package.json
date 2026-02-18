@@ -17,6 +17,7 @@
     "test:components": "npx playwright install && playwright test -c playwright-ct.config.ts",
     "test:components:debug": "npx playwright install && playwright test -c playwright-ct.config.ts --debug",
     "test:unit": "vitest run --reporter=verbose",
+    "test:bridge": "vitest run --config vitest.e2e.config.ts --reporter=verbose",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage"
   },
