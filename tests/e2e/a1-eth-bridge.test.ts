@@ -7,14 +7,13 @@ import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import { describe, expect, it } from "vitest";
 
 import { makeAtoneToEthTransaction } from "@/ics20/a1-eth-hook";
-import { BASE_ZKGM_ADDRESS } from "@/ics20/constants";
+import { ETH_ZKGM_ADDRESS } from "@/ics20/constants";
 import routes from "@/routes.json";
 import { waitForPacketCompletion, waitForPacketStatus } from "@/union/graphql";
 
 const MNEMONIC = process.env.TEST_MNEMONIC;
 const EVM_ADDRESS = process.env.TEST_EVM_ADDRESS;
 const ATOMONE_ADDRESS = process.env.TEST_ATOMONE_ADDRESS;
-// const OSMOSIS_ADDRESS = process.env.TEST_OSMOSIS_ADDRESS;
 const ATOMONE_RPC = process.env.ATOMONE_RPC || "https://atomone-rpc.allinbits.com/";
 const AMOUNT = process.env.TEST_AMOUNT || "20000";
 const DENOM = process.env.TEST_DENOM || "uatone";
@@ -24,11 +23,10 @@ const ONE_HOUR = 60 * ONE_MINUTE;
 
 const hasEnv = Boolean(MNEMONIC && EVM_ADDRESS);
 
-describe("AtomOne → Base Bridge E2E", () => {
+describe("AtomOne → Ethereum Bridge E2E", () => {
   it.skipIf(!hasEnv)(
-    "bridges uatone from AtomOne to Base via Osmosis + Union ZKGM",
+    "bridges uatone from AtomOne to Ethereum via Osmosis + Union ZKGM",
     async () => {
-      // --- Wallet setup ---
       const wallet = await DirectSecp256k1HdWallet.fromMnemonic(MNEMONIC!, {
         prefix: "atone",
       });
@@ -36,7 +34,6 @@ describe("AtomOne → Base Bridge E2E", () => {
       const sender = ATOMONE_ADDRESS || account.address;
       console.log(`Sender: ${sender}`);
 
-      // --- Connect to AtomOne ---
       const client = await SigningStargateClient.connectWithSigner(
         ATOMONE_RPC,
         wallet,
@@ -49,15 +46,14 @@ describe("AtomOne → Base Bridge E2E", () => {
         `Insufficient ${DENOM} balance: need ${AMOUNT}, have ${balance.amount}`,
       ).toBeGreaterThanOrEqual(BigInt(AMOUNT));
 
-      // --- Build bridge transaction ---
       const route = routes.find(
-        (r) => r.src === "AtomOne" && r.dest === "Base" && r.denom === DENOM,
+        (r) => r.src === "AtomOne" && r.dest === "Ethereum" && r.denom === DENOM,
       );
-      expect(route, `No route found for AtomOne → Base ${DENOM}`).toBeDefined();
+      expect(route, `No route found for AtomOne → Ethereum ${DENOM}`).toBeDefined();
 
       const { hash, ...memo } = await makeAtoneToEthTransaction(
         "atomone",
-        "base",
+        "ethereum",
         sender,
         EVM_ADDRESS!,
         BigInt(AMOUNT),
@@ -66,13 +62,12 @@ describe("AtomOne → Base Bridge E2E", () => {
         route!.metadata,
       );
 
-      // --- Broadcast IBC transfer to Osmosis with ZKGM wasm memo ---
       const msg = MsgTransfer.fromPartial({
         sender,
         sourcePort: "transfer",
         sourceChannel: "channel-2",
         token: { denom: DENOM, amount: AMOUNT },
-        receiver: BASE_ZKGM_ADDRESS,
+        receiver: ETH_ZKGM_ADDRESS,
         memo: JSON.stringify(memo),
         timeoutHeight: undefined,
         timeoutTimestamp: BigInt(Date.now() + 10 * 60 * 1000) * BigInt(1_000_000),
@@ -83,7 +78,6 @@ describe("AtomOne → Base Bridge E2E", () => {
         value: msg,
       };
 
-      // Fee in uphoton, matching the app's fee structure
       const gasLimit = "250000";
       const fee = {
         amount: [{ amount: Math.ceil(Number(gasLimit) * 0.25) + "", denom: "uphoton" }],
@@ -95,8 +89,7 @@ describe("AtomOne → Base Bridge E2E", () => {
       console.log(`AtomOne tx: ${txResult.transactionHash} (code: ${txResult.code})`);
       expect(txResult.code, `Tx failed with code ${txResult.code}: ${txResult.rawLog}`).toBe(0);
 
-      // --- Poll Union GraphQL for packet status progression ---
-      console.log(`Packet hash (Osmosis → Base): ${hash}`);
+      console.log(`Packet hash (Osmosis → Ethereum): ${hash}`);
       console.log("Waiting for PACKET_RECV...");
 
       const recvPacket = await waitForPacketStatus(hash, "PACKET_RECV", ONE_MINUTE * 5);
@@ -107,7 +100,7 @@ describe("AtomOne → Base Bridge E2E", () => {
       console.log(`  Recv tx:     ${recvPacket.packet_recv_transaction_hash}`);
 
       console.log("Waiting for PACKET_ACK...");
-      const ackPacket = await waitForPacketCompletion(hash, ONE_HOUR * 3);
+      const ackPacket = await waitForPacketCompletion(hash, ONE_HOUR);
       expect(ackPacket.status).toBe("PACKET_ACK");
       console.log("PACKET_ACK confirmed — bridge completed successfully!");
       console.log(`  Packet hash: ${ackPacket.packet_hash}`);
@@ -121,6 +114,6 @@ describe("AtomOne → Base Bridge E2E", () => {
         }
       }
     },
-    ONE_HOUR * 4,
+    ONE_HOUR * 2,
   );
 });
