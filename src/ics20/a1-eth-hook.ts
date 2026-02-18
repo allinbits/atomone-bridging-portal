@@ -9,6 +9,7 @@ import { Call, TokenOrder, Ucs03, Ucs05, Utils, ZkgmInstruction } from "@unionla
 import { ChainRegistry } from "@unionlabs/sdk/ChainRegistry";
 import { Instruction, PacketFromHex, Ucs03FromHex } from "@unionlabs/sdk/Ucs03";
 import { Cosmos } from "@unionlabs/sdk-cosmos";
+import { Console } from "effect";
 import * as A from "effect/Array";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
@@ -20,7 +21,13 @@ import { encodeAbiParameters, keccak256, parseAbiParameters } from "viem";
 
 import { BASE_CHAIN_ID, BASE_SOURCE_CHANNEL_ID, BASE_ZKGM_ADDRESS, BASEOSMO_SOURCE_CHANNEL_ID, cosmosUcs, ETH_SOURCE_CHANNEL_ID, ETH_ZKGM_ADDRESS, ETHEREUM_CHAIN_ID, etherUcs, ETHOSMO_SOURCE_CHANNEL_ID, OSMOSIS_CHAIN_ID } from "./constants.ts";
 
-
+function convertToHex (str: string) {
+  let hex = "";
+  for (let i = 0; i < str.length; i++) {
+    hex += "" + str.charCodeAt(i).toString(16);
+  }
+  return hex;
+}
 export const makeAtoneToEthTransaction = async (src: string, dest: string, sender: string, rcpt: string, amount: bigint, baseToken: string, quoteToken: string, solver_metadata: string) => {
   return Effect.gen(function *() {
     const encodeInstruction: (
@@ -72,8 +79,20 @@ export const makeAtoneToEthTransaction = async (src: string, dest: string, sende
     const salt = yield* Utils.generateSalt("cosmos");
     const timeout_timestamp = Utils.getTimeoutInNanoseconds24HoursFromNow();
     const instruction = yield* encodeInstruction(tokenOrder).pipe(Effect.flatMap(Schema.encode(Ucs03.Ucs03WithInstructionFromHex)));
+
+    const infosender = yield* calculateIbcCallbackAddress(
+      sender,
+      "channel-94814"
+    );
+    console.log(infosender.address); const saltHash = encodeAbiParameters(
+      parseAbiParameters("(bytes sender, bytes32 salt)"),
+      [
+        { sender: "0x" + convertToHex(infosender.address) as `0x${string}`,
+          salt }
+      ]
+    );
     const packet = yield* Schema.encode(PacketFromHex)(Ucs03.Packet.make({
-      salt,
+      salt: keccak256(saltHash),
       path: 0n,
       instruction: Instruction.make({
         opcode: 3,
@@ -82,7 +101,6 @@ export const makeAtoneToEthTransaction = async (src: string, dest: string, sende
       })
     }));
 
-    console.log(packet);
     const packetAbi = parseAbiParameters("(uint32 sourceChannelId, uint32 destinationChannelId, bytes data, uint64 timeoutHeight, uint64 timeoutTimestamp)[]");
 
     const raw = encodeAbiParameters(
@@ -91,11 +109,11 @@ export const makeAtoneToEthTransaction = async (src: string, dest: string, sende
         [
           {
             sourceChannelId: dest === "ethereum"
-              ? ETH_SOURCE_CHANNEL_ID
-              : BASE_SOURCE_CHANNEL_ID,
-            destinationChannelId: dest === "ethereum"
               ? ETHOSMO_SOURCE_CHANNEL_ID
               : BASEOSMO_SOURCE_CHANNEL_ID,
+            destinationChannelId: dest === "ethereum"
+              ? ETH_SOURCE_CHANNEL_ID
+              : BASE_SOURCE_CHANNEL_ID,
             data: packet,
             timeoutHeight: 0n,
             timeoutTimestamp: timeout_timestamp
@@ -104,7 +122,6 @@ export const makeAtoneToEthTransaction = async (src: string, dest: string, sende
       ]
     );
 
-    console.log(raw);
 
     const hash = keccak256(raw);
 
@@ -132,3 +149,22 @@ export const makeAtoneToEthTransaction = async (src: string, dest: string, sende
     Effect.runPromise
   );
 };
+const sha256 = (data: BufferSource) => Effect.tryPromise(() => globalThis.crypto.subtle.digest(
+  "SHA-256",
+  data
+));
+const calculateIbcCallbackAddress = Effect.fn("calculateIbcCallbackAddress")(function *(sender: string, channelId: string) {
+  const preimage = new Uint8Array([
+    ...new Uint8Array(yield* sha256(new globalThis.TextEncoder().encode("ibc-wasm-hook-intermediary"))),
+    ...new globalThis.TextEncoder().encode(`${channelId}/${sender}`)
+  ]);
+
+  const addr = Ucs05.CosmosDisplay.make({
+    address: yield* Schema.decode(Ucs05.Bech32FromCanonicalBytesWithPrefix("osmo"))(`0x${yield* Schema.encode(Schema.Uint8ArrayFromHex)(new Uint8Array(yield* sha256(preimage)))}`)
+  });
+
+  yield* Console.log({ addr,
+    preimage });
+
+  return addr;
+});
