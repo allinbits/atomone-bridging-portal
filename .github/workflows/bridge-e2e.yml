@@ -1,8 +1,9 @@
 name: Bridge E2E Tests
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -15,6 +16,8 @@ jobs:
         test:
           - a1-base-bridge
           - a1-eth-bridge
+          - eth-a1-bridge
+          - base-a1-bridge
     timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
