@@ -1,0 +1,44 @@
+name: Bridge E2E Tests
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  bridge-e2e:
+    name: ${{ matrix.test }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - a1-base-bridge
+          - a1-eth-bridge
+          - eth-a1-bridge
+          - base-a1-bridge
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run ${{ matrix.test }}
+        env:
+          TEST_MNEMONIC: ${{ secrets.TEST_MNEMONIC }}
+          TEST_EVM_ADDRESS: ${{ secrets.TEST_EVM_ADDRESS }}
+          TEST_ATOMONE_ADDRESS: ${{ secrets.TEST_ATOMONE_ADDRESS }}
+          TEST_OSMOSIS_ADDRESS: ${{ secrets.TEST_OSMOSIS_ADDRESS }}
+        run: >
+          npx vitest run
+          --config vitest.e2e.config.ts
+          tests/e2e/${{ matrix.test }}.test.ts
+          --reporter=verbose
