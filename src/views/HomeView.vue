@@ -238,9 +238,11 @@ const handleButtonClick = async () => {
           selectedDest.toLowerCase(),
           recipientAddress.value,
           selectedToken,
-          Number(amount.value) * Math.pow(
-            10,
-            chainConfig.currencies.find((c) => c.coinMinimalDenom.toLowerCase() === selectedToken)?.coinDecimals || 0
+          Math.round(
+            Number(amount.value) * Math.pow(
+              10,
+              chainConfig.currencies.find((c) => c.coinMinimalDenom.toLowerCase() === selectedToken)?.coinDecimals || 0
+            )
           ) + ""
         );
         amount.value = "";

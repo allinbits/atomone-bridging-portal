@@ -16,7 +16,7 @@
       :disabled="props.disabled"
       @focus="focusHandler(true)"
       @blur="focusHandler(false)"
-      @input="typeof model === 'number' ? (model = MaxValue(MinValue(model))) : model"
+      @input="(e: Event) => { const v = (e.target as HTMLInputElement).valueAsNumber; if (!isNaN(v)) model = MaxValue(MinValue(v)); }"
     />
   </label>
   <Transition
