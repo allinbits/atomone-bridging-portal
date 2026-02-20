@@ -224,15 +224,15 @@ export const makeEthToAtoneTransaction = async (src: string, _dest: string, send
 
     const client = yield* EvmZkgmClient.EvmZkgmClient;
     const eip1193Request = yield* client.prepareEip1193(request);
-    console.log((sender + eip1193Request.packetMetadata.salt.replace(
+
+    const packet_salt = (sender + eip1193Request.packetMetadata.salt.replace(
       /^0x/,
       ""
-    )) as `0x${string}`);
+    )) as `0x${string}`;
+    console.log(packet_salt);
+    
     const packet = yield* Schema.encode(PacketFromHex)(Ucs03.Packet.make({
-      salt: keccak256((sender + eip1193Request.packetMetadata.salt.replace(
-        /^0x/,
-        ""
-      )) as `0x${string}`),
+      salt: keccak256(packet_salt),
       path: 0n,
       instruction: Instruction.make({
         opcode: 2,

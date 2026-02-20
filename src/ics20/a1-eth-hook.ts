@@ -84,11 +84,15 @@ export const makeAtoneToEthTransaction = async (src: string, dest: string, sende
       sender,
       "channel-94814"
     );
-    console.log(infosender.address); const saltHash = encodeAbiParameters(
+    console.log(infosender.address);
+    
+    const saltHash = encodeAbiParameters(
       parseAbiParameters("(bytes sender, bytes32 salt)"),
       [
-        { sender: "0x" + convertToHex(infosender.address) as `0x${string}`,
-          salt }
+        {
+          sender: "0x" + convertToHex(infosender.address) as `0x${string}`,
+          salt
+        }
       ]
     );
     const packet = yield* Schema.encode(PacketFromHex)(Ucs03.Packet.make({
