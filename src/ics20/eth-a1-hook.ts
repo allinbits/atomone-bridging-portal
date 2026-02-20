@@ -18,6 +18,7 @@ import {
 import { ChainRegistry } from "@unionlabs/sdk/ChainRegistry";
 import { ChannelId } from "@unionlabs/sdk/schema/channel";
 import { HexFromJson } from "@unionlabs/sdk/schema/hex";
+import { Instruction, PacketFromHex, Ucs03FromHex } from "@unionlabs/sdk/Ucs03";
 import { EvmZkgmClient } from "@unionlabs/sdk-evm";
 import * as A from "effect/Array";
 import * as Cause from "effect/Cause";
@@ -26,7 +27,7 @@ import { pipe } from "effect/Function";
 import * as Match from "effect/Match";
 import * as ParseResult from "effect/ParseResult";
 import * as Schema from "effect/Schema";
-import { bytesToHex, encodeAbiParameters, fromHex, keccak256 } from "viem";
+import { bytesToHex, encodeAbiParameters, fromHex, keccak256, parseAbiParameters } from "viem";
 
 import { BASE_BYTECODE_BASE_CHECKSUM, BASE_CHAIN_ID, BASE_MODULE_HASH, BASE_SOURCE_CHANNEL_ID, BASEOSMO_SOURCE_CHANNEL_ID, CANONICAL_BASE_ZKGM, CANONICAL_ETH_ZKGM, cosmosUcs, ETH_BYTECODE_BASE_CHECKSUM, ETH_MODULE_HASH, ETH_SOURCE_CHANNEL_ID, ETHEREUM_CHAIN_ID, etherUcs, ETHOSMO_SOURCE_CHANNEL_ID, OSMOSIS_CHAIN_ID, OSMOSIS_TO_ATOMONE_CHANNEL, UCS03_BASE_EVM, UCS03_ETH_EVM } from "./constants.ts";
 
@@ -208,6 +209,7 @@ export const makeEthToAtoneTransaction = async (src: string, _dest: string, send
       calls
     ]);
 
+
     const request = ZkgmClientRequest.make({
       source: sourceChain,
       destination: osmosisChain,
@@ -221,7 +223,55 @@ export const makeEthToAtoneTransaction = async (src: string, _dest: string, send
     });
 
     const client = yield* EvmZkgmClient.EvmZkgmClient;
-    return yield* client.prepareEip1193(request);
+    const eip1193Request = yield* client.prepareEip1193(request);
+    console.log((sender + eip1193Request.packetMetadata.salt.replace(
+      /^0x/,
+      ""
+    )) as `0x${string}`);
+    const packet = yield* Schema.encode(PacketFromHex)(Ucs03.Packet.make({
+      salt: keccak256((sender + eip1193Request.packetMetadata.salt.replace(
+        /^0x/,
+        ""
+      )) as `0x${string}`),
+      path: 0n,
+      instruction: Instruction.make({
+        opcode: 2,
+        version: 0,
+        operand: yield* Schema.encode(Ucs03FromHex)(yield* encodeInstruction(batch))
+      })
+    }));
+
+    console.log(packet);
+
+    console.log(keccak256(packet));
+
+    const packetAbi = parseAbiParameters("(uint32 sourceChannelId, uint32 destinationChannelId, bytes data, uint64 timeoutHeight, uint64 timeoutTimestamp)[]");
+
+    const raw = encodeAbiParameters(
+      packetAbi,
+      [
+        [
+          {
+            sourceChannelId: src === "ethereum"
+              ? ETH_SOURCE_CHANNEL_ID
+              : BASE_SOURCE_CHANNEL_ID,
+            destinationChannelId: src === "ethereum"
+              ? ETHOSMO_SOURCE_CHANNEL_ID
+              : BASEOSMO_SOURCE_CHANNEL_ID,
+            data: packet,
+            timeoutHeight: 0n,
+            timeoutTimestamp: eip1193Request.packetMetadata.timeoutTimestamp
+          }
+        ]
+      ]
+    );
+
+    console.log(raw);
+
+    const hash = keccak256(raw);
+    console.log(hash);
+    return { ...eip1193Request,
+      hash };
   }).pipe(
     Effect.provide([
       ChainRegistry.Default,

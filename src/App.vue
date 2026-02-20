@@ -3,6 +3,7 @@ import { RouterView } from "vue-router";
 
 import FooterSection from "@/components/layout/FooterSection.vue";
 import HeaderSection from "@/components/layout/HeaderSection.vue";
+import BridgeResult from "@/components/popups/BridgeResult.vue";
 import ErrorBox from "@/components/popups/ErrorBox.vue";
 </script>
 
@@ -11,6 +12,7 @@ import ErrorBox from "@/components/popups/ErrorBox.vue";
     <HeaderSection />
     <div class="flex flex-col w-full">
       <ErrorBox />
+      <BridgeResult />
       <Suspense>
         <RouterView />
       </Suspense>

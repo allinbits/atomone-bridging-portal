@@ -1,6 +1,7 @@
 import { EncodeObject } from "@cosmjs/proto-signing";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import { RpcTransactionRequest } from "viem";
+import { ref } from "vue";
 
 import { useWallet } from "@/composables/useWallet";
 import { makeAtoneToEthTransaction } from "@/ics20/a1-eth-hook.ts";
@@ -34,7 +35,7 @@ const buildBridgeInfo = async (src: string, dest: string, rcpt: string, sender: 
         ? ETH_ZKGM_ADDRESS
         : BASE_ZKGM_ADDRESS };
   } else {
-    const tx = await makeEthToAtoneTransaction(
+    const { hash, ...tx } = await makeEthToAtoneTransaction(
       src,
       dest,
       sender,
@@ -44,13 +45,16 @@ const buildBridgeInfo = async (src: string, dest: string, rcpt: string, sender: 
       route.quoteToken,
       route.metadata
     );
-    return { memo: tx,
+    return { hash,
+      memo: tx.preparedRequest,
       baseToken: route.baseToken,
-      receiver: tx.to as string };
+      receiver: tx.preparedRequest.to as string };
   }
 };
 
 export const useBridges = () => {
+  const loading = ref(false);
+
   const createBridge = async (src: string, dest: string, rcpt: string, denom: string, amount: string) => {
     if (src === "atomone") {
       const { sendTx, address } = useWallet();
@@ -87,14 +91,20 @@ export const useBridges = () => {
       };
       console.log(transfer);
 
-      return sendTx([transfer]);
+      loading.value = true;
+      try {
+        await sendTx([transfer]);
+        return { packetHash: hash };
+      } finally {
+        loading.value = false;
+      }
     }
     if (src === "ethereum" || src === "base") {
       const { address, walletClient, ensureAllowance, switchChain } = useEthWallet();
 
       await switchChain(src as SupportedChain);
 
-      const { memo, receiver, baseToken } = await buildBridgeInfo(
+      const { memo, receiver, baseToken, hash } = await buildBridgeInfo(
         src,
         dest,
         rcpt,
@@ -102,30 +112,39 @@ export const useBridges = () => {
         denom,
         amount
       );
+
+      console.log(hash);
       console.log({ memo,
         receiver,
         denom,
         amount });
 
-      if (baseToken.startsWith("0x")) {
-        await ensureAllowance(
-          baseToken as `0x${string}`,
-          receiver as `0x${string}`,
-          BigInt(amount),
-          src as SupportedChain
-        );
+      loading.value = true;
+      try {
+        if (baseToken.startsWith("0x")) {
+          await ensureAllowance(
+            baseToken as `0x${string}`,
+            receiver as `0x${string}`,
+            BigInt(amount),
+            src as SupportedChain
+          );
+        }
+
+        const [account] = await walletClient.value!.getAddresses();
+
+        await walletClient.value?.sendTransaction({
+          to: receiver as `0x${string}`,
+          value: BigInt(0),
+          data: (memo as RpcTransactionRequest).data,
+          account,
+          chain: undefined
+        });
+        return { packetHash: hash };
+      } finally {
+        loading.value = false;
       }
-
-      const [account] = await walletClient.value!.getAddresses();
-
-      return walletClient.value?.sendTransaction({
-        to: receiver as `0x${string}`,
-        value: BigInt(0),
-        data: (memo as RpcTransactionRequest).data,
-        account,
-        chain: undefined
-      });
     }
   };
-  return { createBridge };
+  return { createBridge,
+    loading };
 };

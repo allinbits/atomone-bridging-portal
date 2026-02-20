@@ -4,6 +4,7 @@ const props = defineProps<{ disabled?: boolean }>();
 
 <template>
   <button
+    :disabled="props.disabled"
     class="px-6 py-4 rounded-md text-200 font-medium"
     :class="
       props.disabled

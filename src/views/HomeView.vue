@@ -221,27 +221,40 @@ const handleFillRecipient = () => {
   }
 };
 
+const { createBridge, loading: bridgeLoading } = useBridges();
+
 const handleButtonClick = async () => {
   if (!Wallet.loggedIn.value) {
     bus.emit("open");
   } else {
-    const { createBridge } = useBridges();
-
     const selectedSrc = itemsSrc.value[srcIndex.value]?.name;
     const selectedDest = itemsDest.value[destIndex.value]?.name;
     const selectedToken = availableTokens.value[tokenIndex.value]?.denom;
 
     if (selectedSrc && selectedDest && selectedToken) {
-      await createBridge(
-        selectedSrc.toLowerCase(),
-        selectedDest.toLowerCase(),
-        recipientAddress.value,
-        selectedToken,
-        Number(amount.value) * Math.pow(
-          10,
-          chainConfig.currencies.find((c) => c.coinMinimalDenom.toLowerCase() === selectedToken)?.coinDecimals || 0
-        ) + ""
-      );
+      try {
+        const result = await createBridge(
+          selectedSrc.toLowerCase(),
+          selectedDest.toLowerCase(),
+          recipientAddress.value,
+          selectedToken,
+          Number(amount.value) * Math.pow(
+            10,
+            chainConfig.currencies.find((c) => c.coinMinimalDenom.toLowerCase() === selectedToken)?.coinDecimals || 0
+          ) + ""
+        );
+        amount.value = "";
+        recipientAddress.value = "";
+        bus.emit(
+          "bridge-success",
+          result?.packetHash ?? ""
+        );
+      } catch (e) {
+        bus.emit(
+          "bridge-error",
+          e instanceof Error ? e.message : String(e)
+        );
+      }
     }
   }
 };
@@ -337,9 +350,13 @@ const handleButtonClick = async () => {
       <!-- Bridge / Connect Button -->
       <div class="flex justify-center mt-6">
         <CommonButton
+          :disabled="bridgeLoading"
           @click="handleButtonClick"
         >
-          {{ Wallet.loggedIn.value ? 'Bridge' : 'Connect Wallet' }}
+          <span class="inline-flex items-center gap-2">
+            <Icon v-if="bridgeLoading" icon="loading" :size="1.2" />
+            {{ bridgeLoading ? 'Bridging...' : Wallet.loggedIn.value ? 'Bridge' : 'Connect Wallet' }}
+          </span>
         </CommonButton>
       </div>
     </div>
