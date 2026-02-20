@@ -11,8 +11,7 @@ test(
     const component = await mount(
       UserBalance,
       {
-        props: { address: "govgen1ylg6jvq9ad95rn8xdt82ulcwgyqm8lj2qq9tma",
-          denom: "ugovgen" }
+        props: { denom: "ugovgen" }
       }
     );
 
