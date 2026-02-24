@@ -9,7 +9,6 @@ import { Call, TokenOrder, Ucs03, Ucs05, Utils, ZkgmInstruction } from "@unionla
 import { ChainRegistry } from "@unionlabs/sdk/ChainRegistry";
 import { Instruction, PacketFromHex, Ucs03FromHex } from "@unionlabs/sdk/Ucs03";
 import { Cosmos } from "@unionlabs/sdk-cosmos";
-import { Console } from "effect";
 import * as A from "effect/Array";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
@@ -84,7 +83,8 @@ export const makeAtoneToEthTransaction = async (src: string, dest: string, sende
       sender,
       "channel-94814"
     );
-    console.log(infosender.address); const saltHash = encodeAbiParameters(
+
+    const saltHash = encodeAbiParameters(
       parseAbiParameters("(bytes sender, bytes32 salt)"),
       [
         { sender: "0x" + convertToHex(infosender.address) as `0x${string}`,
@@ -162,9 +162,6 @@ const calculateIbcCallbackAddress = Effect.fn("calculateIbcCallbackAddress")(fun
   const addr = Ucs05.CosmosDisplay.make({
     address: yield* Schema.decode(Ucs05.Bech32FromCanonicalBytesWithPrefix("osmo"))(`0x${yield* Schema.encode(Schema.Uint8ArrayFromHex)(new Uint8Array(yield* sha256(preimage)))}`)
   });
-
-  yield* Console.log({ addr,
-    preimage });
 
   return addr;
 });

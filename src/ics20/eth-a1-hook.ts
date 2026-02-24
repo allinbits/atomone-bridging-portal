@@ -224,15 +224,14 @@ export const makeEthToAtoneTransaction = async (src: string, _dest: string, send
 
     const client = yield* EvmZkgmClient.EvmZkgmClient;
     const eip1193Request = yield* client.prepareEip1193(request);
-    console.log((sender + eip1193Request.packetMetadata.salt.replace(
+
+    const packetSalt = (sender + eip1193Request.packetMetadata.salt.replace(
       /^0x/,
       ""
-    )) as `0x${string}`);
+    )) as `0x${string}`;
+
     const packet = yield* Schema.encode(PacketFromHex)(Ucs03.Packet.make({
-      salt: keccak256((sender + eip1193Request.packetMetadata.salt.replace(
-        /^0x/,
-        ""
-      )) as `0x${string}`),
+      salt: keccak256(packetSalt),
       path: 0n,
       instruction: Instruction.make({
         opcode: 2,
@@ -240,10 +239,6 @@ export const makeEthToAtoneTransaction = async (src: string, _dest: string, send
         operand: yield* Schema.encode(Ucs03FromHex)(yield* encodeInstruction(batch))
       })
     }));
-
-    console.log(packet);
-
-    console.log(keccak256(packet));
 
     const packetAbi = parseAbiParameters("(uint32 sourceChannelId, uint32 destinationChannelId, bytes data, uint64 timeoutHeight, uint64 timeoutTimestamp)[]");
 
@@ -266,10 +261,8 @@ export const makeEthToAtoneTransaction = async (src: string, _dest: string, send
       ]
     );
 
-    console.log(raw);
-
     const hash = keccak256(raw);
-    console.log(hash);
+
     return { ...eip1193Request,
       hash };
   }).pipe(

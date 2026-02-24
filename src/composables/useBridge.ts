@@ -66,12 +66,6 @@ export const useBridges = () => {
         denom,
         amount
       );
-      console.log({ memo,
-        receiver,
-        denom,
-        amount });
-
-      console.log(hash);
       const msg = MsgTransfer.fromPartial({
         sender: address.value,
         sourcePort: "transfer",
@@ -89,7 +83,6 @@ export const useBridges = () => {
         typeUrl: "/ibc.applications.transfer.v1.MsgTransfer",
         value: msg
       };
-      console.log(transfer);
 
       loading.value = true;
       try {
@@ -112,12 +105,6 @@ export const useBridges = () => {
         denom,
         amount
       );
-
-      console.log(hash);
-      console.log({ memo,
-        receiver,
-        denom,
-        amount });
 
       loading.value = true;
       try {

@@ -184,10 +184,6 @@ const useWalletInstance = () => {
           msgs,
           undefined
         );
-        console.log(
-          "Simulated gas:",
-          simulate
-        );
         const gasLimit = simulate && simulate > 0
           ? "" + Math.ceil(100000 * 1.3)
           : "500000";

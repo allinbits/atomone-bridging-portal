@@ -152,7 +152,7 @@ const max = computed(() => {
 
   const tokenDenom = availableTokens.value[tokenIndex.value].denom;
   const selectedSrc = itemsSrc.value[srcIndex.value]?.name;
-  console.log(ethAtoneBalance);
+
   // If source is an EVM chain, use ERC20 token balances
   if (selectedSrc === "Ethereum" || selectedSrc === "Base") {
     if (tokenDenom === "uatone") {

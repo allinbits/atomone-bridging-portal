@@ -65,7 +65,6 @@ const signMint = async (isCLI = false) => {
   };
   try {
     transacting.value = true;
-    console.log(mintOptions);
     const minted = await createMint(
       mintOptions,
       isCLI
