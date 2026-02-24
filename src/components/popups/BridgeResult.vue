@@ -145,6 +145,13 @@ const close = () => {
               <Icon v-if="!transferConfirmed" icon="loading" :size="1.2" />
               <Icon v-else icon="check" :size="1.2" class="text-green-200" />
             </div>
+            <div v-if="packetHash" class="flex items-center justify-center gap-2">
+              <Icon v-if="!transferConfirmed" icon="loading" :size="0.8" />
+              <Icon v-else icon="check" :size="0.8" class="text-green-200" />
+              <span class="text-grey-100 text-100">
+                {{ transferConfirmed ? 'Tx found on Union' : 'Waiting for Tx to be available on Union' }}
+              </span>
+            </div>
           </template>
 
           <!-- Failure -->
