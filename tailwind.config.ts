@@ -120,6 +120,10 @@ export default <Config>{
         `${pxToRem(13)}rem`,
         { lineHeight: `${pxToRem(16)}rem` }
       ],
+      150: [
+        `${pxToRem(14)}rem`,
+        { lineHeight: `${pxToRem(16)}rem` }
+      ],
       200: [
         `${pxToRem(15)}rem`,
         { lineHeight: `${pxToRem(16)}rem` }

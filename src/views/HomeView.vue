@@ -238,12 +238,10 @@ const handleButtonClick = async () => {
           selectedDest.toLowerCase(),
           recipientAddress.value,
           selectedToken,
-          Math.round(
-            Number(amount.value) * Math.pow(
-              10,
-              chainConfig.currencies.find((c) => c.coinMinimalDenom.toLowerCase() === selectedToken)?.coinDecimals || 0
-            )
-          ) + ""
+          Math.round(Number(amount.value) * Math.pow(
+            10,
+            chainConfig.currencies.find((c) => c.coinMinimalDenom.toLowerCase() === selectedToken)?.coinDecimals || 0
+          )) + ""
         );
         amount.value = "";
         recipientAddress.value = "";
@@ -254,7 +252,9 @@ const handleButtonClick = async () => {
       } catch (e) {
         bus.emit(
           "bridge-error",
-          e instanceof Error ? e.message : String(e)
+          e instanceof Error
+            ? e.message
+            : String(e)
         );
       }
     }
@@ -263,14 +263,14 @@ const handleButtonClick = async () => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full min-h-[calc(100vh-200px)] pb-[72px] gap-4 items-center justify-center">
+  <div class="flex flex-col w-full min-h-[calc(100vh-200px)] pb-[72px] gap-4 items-center justify-center text-150">
     <!-- Centered Card -->
-    <div class="bg-grey-300 rounded-lg p-8 shadow-lg w-full max-w-lg">
-      <h2 class="text-xl font-semibold mb-6 text-center">Bridge Tokens:</h2>
+    <div class="bg-grey-300 rounded-lg p-6 shadow-lg w-full max-w-xl">
+      <h2 class="text-400 font-semibold mb-6 text-center">Bridge Tokens:</h2>
 
       <!-- Token Selection -->
       <div class="flex flex-col mb-4">
-        <span class="mb-2 text-sm text-grey-100">Select Token:</span>
+        <span class="mb-2 text-200 text-grey-100">Select Token:</span>
         <DropDown
           :items="availableTokens"
           :model-value="tokenIndex"
@@ -280,7 +280,7 @@ const handleButtonClick = async () => {
 
       <!-- Src Network Selection -->
       <div class="flex flex-col mb-4">
-        <span class="mb-2 text-sm text-grey-100">From:</span>
+        <span class="mb-2 text-200 text-grey-100">From:</span>
         <DropDown
           :items="itemsSrc"
           :model-value="srcIndex"
@@ -290,7 +290,7 @@ const handleButtonClick = async () => {
 
       <!-- Dest Network Selection -->
       <div class="flex flex-col mb-4">
-        <span class="mb-2 text-sm text-grey-100">To:</span>
+        <span class="mb-2 text-200 text-grey-100">To:</span>
         <DropDown
           :items="itemsDest"
           :model-value="destIndex"
@@ -300,7 +300,7 @@ const handleButtonClick = async () => {
 
       <!-- Amount Input -->
       <div class="flex flex-col mb-4">
-        <span class="mb-2 text-sm text-grey-100">Amount:</span>
+        <span class="mb-2 text-200 text-grey-100">Amount:</span>
         <div class="relative group">
           <UiInput
             :model-value="amount"
@@ -325,7 +325,7 @@ const handleButtonClick = async () => {
 
       <!-- Recipient Address Input -->
       <div class="flex flex-col mb-4">
-        <span class="mb-2 text-sm text-grey-100">Recipient Address:</span>
+        <span class="mb-2 text-200 text-grey-100">Recipient Address:</span>
         <div class="flex gap-2 items-start">
           <div class="w-full min-w-0">
             <UiInput
@@ -341,7 +341,7 @@ const handleButtonClick = async () => {
           <CommonButton
             :disabled="!fillRecipientAddress"
             :title="fillRecipientAddress ? 'Use my wallet address' : 'Connect the destination wallet first'"
-            class="shrink-0 mt-3 px-3 py-5 rounded-md text-sm font-medium border border-transparent transition-colors"
+            class="shrink-0 mt-3 !px-4 py-4 rounded-md text-150 font-medium border border-transparent transition-colors"
             @click="handleFillRecipient"
           >
             My Address

@@ -30,7 +30,7 @@
         <template #fallback> <span class="inline-flex" :style="`width:${size}em;`"></span></template>
       </Suspense>
       <template v-if="$slots['default']">
-        <span class="ml-1 text-small-reg" :class="[gradient && 'text-gradient']"><slot /></span
+        <span class="ml-1 text-200all-reg" :class="[gradient && 'text-gradient']"><slot /></span
       ></template>
     </div>
   </KeepAlive>
