@@ -11,11 +11,12 @@ import { makeAtoneToEthTransaction } from "@/ics20/a1-eth-hook";
 import { ETH_ZKGM_ADDRESS } from "@/ics20/constants";
 import routes from "@/routes.json";
 import { waitForPacketCompletion, waitForPacketStatus } from "@/union/graphql";
+import { withFileLock } from "./_file-lock";
 
 const MNEMONIC = process.env.TEST_MNEMONIC;
 const EVM_ADDRESS = process.env.TEST_EVM_ADDRESS;
 const ATOMONE_RPC = process.env.ATOMONE_RPC || "https://atomone-rpc.allinbits.com/";
-const AMOUNT = process.env.TEST_AMOUNT || "20000";
+const AMOUNT = process.env.TEST_AMOUNT || "4242";
 const DENOM = process.env.TEST_DENOM || "uatone";
 const TEST_ENABLE_WAIT_FOR_ACK = process.env.TEST_ENABLE_WAIT_FOR_ACK === "true";
 
@@ -25,6 +26,12 @@ const MAX_SEQUENCE_RETRIES = Number(process.env.TEST_SEQUENCE_RETRIES ?? "3");
 const TEST_TX_BROADCAST_TIMEOUT_MS = Number(process.env.TEST_TX_BROADCAST_TIMEOUT_MS ?? "240000");
 const TEST_TX_BROADCAST_POLL_INTERVAL_MS = Number(
   process.env.TEST_TX_BROADCAST_POLL_INTERVAL_MS ?? "3000",
+);
+const TEST_TX_POST_SUBMIT_LOOKUP_TIMEOUT_MS = Number(
+  process.env.TEST_TX_POST_SUBMIT_LOOKUP_TIMEOUT_MS ?? "240000",
+);
+const TEST_TX_POST_SUBMIT_LOOKUP_POLL_INTERVAL_MS = Number(
+  process.env.TEST_TX_POST_SUBMIT_LOOKUP_POLL_INTERVAL_MS ?? "3000",
 );
 
 const hasEnv = Boolean(MNEMONIC && EVM_ADDRESS);
@@ -84,49 +91,113 @@ describe("AtomOne → Ethereum Bridge E2E", () => {
         value: msg,
       };
 
-      const gasLimit = "250000";
+      // Slightly higher gas/fee to improve tx inclusion speed under load.
+      const gasLimit = "400000";
       const fee = {
-        amount: [{ amount: Math.ceil(Number(gasLimit) * 0.25) + "", denom: "uphoton" }],
+        amount: [{ amount: Math.ceil(Number(gasLimit) * 0.5) + "", denom: "uphoton" }],
         gas: gasLimit,
       };
 
-      let txResult: Awaited<ReturnType<typeof client.broadcastTx>> | undefined;
-      for (let attempt = 1; attempt <= MAX_SEQUENCE_RETRIES; attempt++) {
-        console.log(`Fetching chain/account sequence (attempt ${attempt}/${MAX_SEQUENCE_RETRIES})...`);
-        const [{ accountNumber, sequence }, chainId] = await Promise.all([
-          client.getSequence(sender),
-          client.getChainId(),
-        ]);
-        console.log(`Signing with accountNumber=${accountNumber}, sequence=${sequence}`);
+      const txResult = await withFileLock("atomone-sequence", async () => {
+        let result:
+          | {
+              code: number;
+              rawLog: string;
+              transactionHash: string;
+            }
+          | undefined;
 
-        const signedTx = await client.sign(sender, [transfer], fee, "", {
-          accountNumber,
-          sequence,
-          chainId,
-        });
-        const txBytes = TxRaw.encode(signedTx).finish();
+        for (let attempt = 1; attempt <= MAX_SEQUENCE_RETRIES; attempt++) {
+          console.log(
+            `Fetching chain/account sequence (attempt ${attempt}/${MAX_SEQUENCE_RETRIES})...`,
+          );
+          const [{ accountNumber, sequence }, chainId] = await Promise.all([
+            client.getSequence(sender),
+            client.getChainId(),
+          ]);
+          console.log(`Signing with accountNumber=${accountNumber}, sequence=${sequence}`);
 
-        console.log("Broadcasting IBC transfer...");
-        txResult = await client.broadcastTx(
-          txBytes,
-          TEST_TX_BROADCAST_TIMEOUT_MS,
-          TEST_TX_BROADCAST_POLL_INTERVAL_MS,
-        );
-        const rawLog = txResult.rawLog ?? "";
-        const isSequenceMismatch =
-          txResult.code === 32 || rawLog.toLowerCase().includes("account sequence mismatch");
-        if (!isSequenceMismatch || attempt === MAX_SEQUENCE_RETRIES) {
-          break;
+          const signedTx = await client.sign(sender, [transfer], fee, "", {
+            accountNumber,
+            sequence,
+            chainId,
+          });
+          const txBytes = TxRaw.encode(signedTx).finish();
+
+          console.log("Broadcasting IBC transfer...");
+          let transactionHash: string | undefined;
+          let code: number | undefined;
+          let rawLog = "";
+
+          try {
+            const broadcastResult = await client.broadcastTx(
+              txBytes,
+              TEST_TX_BROADCAST_TIMEOUT_MS,
+              TEST_TX_BROADCAST_POLL_INTERVAL_MS,
+            );
+            transactionHash = broadcastResult.transactionHash;
+            code = broadcastResult.code;
+            rawLog = broadcastResult.rawLog ?? "";
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            const isSubmittedButNotIndexed =
+              message.includes("was submitted but was not yet found on the chain");
+            if (!isSubmittedButNotIndexed) {
+              throw error;
+            }
+
+            const txHashMatch = message.match(/Transaction with ID ([A-F0-9]+)/);
+            transactionHash = txHashMatch?.[1];
+            if (!transactionHash) {
+              throw error;
+            }
+
+            console.log(
+              `Broadcast timeout after submit, polling RPC for tx ${transactionHash}...`,
+            );
+            const startedAt = Date.now();
+            while (Date.now() - startedAt < TEST_TX_POST_SUBMIT_LOOKUP_TIMEOUT_MS) {
+              const indexedTx = await client.getTx(transactionHash);
+              if (indexedTx) {
+                code = indexedTx.code;
+                rawLog = indexedTx.rawLog ?? "";
+                break;
+              }
+              await new Promise((resolve) =>
+                setTimeout(resolve, TEST_TX_POST_SUBMIT_LOOKUP_POLL_INTERVAL_MS),
+              );
+            }
+
+            if (code === undefined) {
+              throw new Error(
+                `Transaction ${transactionHash} was submitted but not indexed within ` +
+                  `${TEST_TX_POST_SUBMIT_LOOKUP_TIMEOUT_MS}ms`,
+              );
+            }
+          }
+
+          if (!transactionHash || code === undefined) {
+            throw new Error("Broadcast result is missing transaction hash or code");
+          }
+          result = { transactionHash, code, rawLog };
+          const resultRawLog = result.rawLog ?? "";
+          const isSequenceMismatch =
+            result.code === 32 || resultRawLog.toLowerCase().includes("account sequence mismatch");
+          if (!isSequenceMismatch || attempt === MAX_SEQUENCE_RETRIES) {
+            break;
+          }
+
+          const waitMs = 4000 * attempt;
+          console.log(`Sequence mismatch detected, retrying in ${waitMs}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, waitMs));
         }
 
-        const waitMs = 800 * attempt;
-        console.log(`Sequence mismatch detected, retrying in ${waitMs}ms...`);
-        await new Promise((resolve) => setTimeout(resolve, waitMs));
-      }
+        if (!result) {
+          throw new Error("Broadcast result is missing");
+        }
+        return result;
+      });
 
-      if (!txResult) {
-        throw new Error("Broadcast result is missing");
-      }
       console.log(`AtomOne tx: ${txResult.transactionHash} (code: ${txResult.code})`);
       expect(txResult.code, `Tx failed with code ${txResult.code}: ${txResult.rawLog}`).toBe(0);
 

@@ -13,7 +13,7 @@ import { waitForPacketCompletion, waitForPacketStatus } from "@/union/graphql";
 
 const MNEMONIC = process.env.TEST_MNEMONIC;
 const ETH_RPC = process.env.ETH_RPC || "https://ethereum-rpc.publicnode.com";
-const AMOUNT = process.env.TEST_AMOUNT || "4200";
+const AMOUNT = process.env.TEST_AMOUNT || "4242";
 const DENOM = process.env.TEST_DENOM || "uatone";
 const TEST_ENABLE_WAIT_FOR_ACK = process.env.TEST_ENABLE_WAIT_FOR_ACK === "true";
 
