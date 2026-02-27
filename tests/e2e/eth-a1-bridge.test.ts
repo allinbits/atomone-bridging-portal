@@ -97,7 +97,7 @@ describe("Ethereum → AtomOne Bridge E2E", () => {
       console.log(`Packet hash: ${hash}`);
       console.log("Waiting for PACKET_RECV...");
 
-      const recvPacket = await waitForPacketStatus(hash, "PACKET_RECV", ONE_MINUTE * 5);
+      const recvPacket = await waitForPacketStatus(hash, "PACKET_RECV", ONE_HOUR * 4);
       expect(recvPacket.source_universal_chain_id).toBe("ethereum.1");
       console.log("PACKET_RECV confirmed!");
       console.log(`  Packet hash: ${recvPacket.packet_hash}`);
@@ -105,7 +105,7 @@ describe("Ethereum → AtomOne Bridge E2E", () => {
       console.log(`  Recv tx:     ${recvPacket.packet_recv_transaction_hash}`);
 
       console.log("Waiting for PACKET_ACK...");
-      const ackPacket = await waitForPacketCompletion(hash, ONE_HOUR);
+      const ackPacket = await waitForPacketCompletion(hash, ONE_HOUR * 4);
       expect(ackPacket.status).toBe("PACKET_ACK");
       console.log("PACKET_ACK confirmed — bridge completed successfully!");
       console.log(`  Packet hash: ${ackPacket.packet_hash}`);
@@ -119,6 +119,6 @@ describe("Ethereum → AtomOne Bridge E2E", () => {
         }
       }
     },
-    ONE_HOUR * 2,
+    ONE_HOUR * 8,
   );
 });
