@@ -15,6 +15,7 @@ const MNEMONIC = process.env.TEST_MNEMONIC;
 const ETH_RPC = process.env.ETH_RPC || "https://ethereum-rpc.publicnode.com";
 const AMOUNT = process.env.TEST_AMOUNT || "4200";
 const DENOM = process.env.TEST_DENOM || "uatone";
+const TEST_ENABLE_WAIT_FOR_ACK = process.env.TEST_ENABLE_WAIT_FOR_ACK === "true";
 
 const ONE_MINUTE = 1 * 60 * 1000;
 const ONE_HOUR = 60 * ONE_MINUTE;
@@ -111,19 +112,23 @@ describe("Ethereum → AtomOne Bridge E2E", () => {
       console.log(`  Send tx:     ${recvPacket.packet_send_transaction_hash}`);
       console.log(`  Recv tx:     ${recvPacket.packet_recv_transaction_hash}`);
 
-      console.log("Waiting for PACKET_ACK...");
-      const ackPacket = await waitForPacketCompletion(hash, ONE_HOUR * 4);
-      expect(ackPacket.status).toBe("PACKET_ACK");
-      console.log("PACKET_ACK confirmed — bridge completed successfully!");
-      console.log(`  Packet hash: ${ackPacket.packet_hash}`);
-      console.log(`  Send tx:     ${ackPacket.packet_send_transaction_hash}`);
-      console.log(`  Recv tx:     ${ackPacket.packet_recv_transaction_hash}`);
-      console.log(`  Ack tx:      ${ackPacket.packet_ack_transaction_hash}`);
-      if (ackPacket.traces?.length) {
-        console.log(`  Traces (${ackPacket.traces.length}):`);
-        for (const trace of ackPacket.traces) {
-          console.log(`    ${trace.type} @ ${trace.chain.universal_chain_id} (height ${trace.height})`);
+      if (TEST_ENABLE_WAIT_FOR_ACK) {
+        console.log("Waiting for PACKET_ACK...");
+        const ackPacket = await waitForPacketCompletion(hash, ONE_HOUR * 4);
+        expect(ackPacket.status).toBe("PACKET_ACK");
+        console.log("PACKET_ACK confirmed — bridge completed successfully!");
+        console.log(`  Packet hash: ${ackPacket.packet_hash}`);
+        console.log(`  Send tx:     ${ackPacket.packet_send_transaction_hash}`);
+        console.log(`  Recv tx:     ${ackPacket.packet_recv_transaction_hash}`);
+        console.log(`  Ack tx:      ${ackPacket.packet_ack_transaction_hash}`);
+        if (ackPacket.traces?.length) {
+          console.log(`  Traces (${ackPacket.traces.length}):`);
+          for (const trace of ackPacket.traces) {
+            console.log(`    ${trace.type} @ ${trace.chain.universal_chain_id} (height ${trace.height})`);
+          }
         }
+      } else {
+        console.log("Skipping PACKET_ACK wait (TEST_ENABLE_WAIT_FOR_ACK=false)");
       }
     },
     ONE_HOUR * 8,
