@@ -40,8 +40,6 @@ jobs:
         env:
           TEST_MNEMONIC: ${{ secrets.TEST_MNEMONIC }}
           TEST_EVM_ADDRESS: ${{ secrets.TEST_EVM_ADDRESS }}
-          TEST_ATOMONE_ADDRESS: ${{ secrets.TEST_ATOMONE_ADDRESS }}
-          TEST_OSMOSIS_ADDRESS: ${{ secrets.TEST_OSMOSIS_ADDRESS }}
         run: >
           npx vitest run
           --config vitest.e2e.config.ts

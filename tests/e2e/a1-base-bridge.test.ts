@@ -3,6 +3,7 @@ import "dotenv/config";
 
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { SigningStargateClient } from "@cosmjs/stargate";
+import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import { describe, expect, it } from "vitest";
 
@@ -21,6 +22,11 @@ const TEST_ENABLE_WAIT_FOR_ACK = process.env.TEST_ENABLE_WAIT_FOR_ACK === "true"
 
 const ONE_MINUTE = 1 * 60 * 1000;
 const ONE_HOUR = 60 * ONE_MINUTE;
+const MAX_SEQUENCE_RETRIES = Number(process.env.TEST_SEQUENCE_RETRIES ?? "3");
+const TEST_TX_BROADCAST_TIMEOUT_MS = Number(process.env.TEST_TX_BROADCAST_TIMEOUT_MS ?? "240000");
+const TEST_TX_BROADCAST_POLL_INTERVAL_MS = Number(
+  process.env.TEST_TX_BROADCAST_POLL_INTERVAL_MS ?? "3000",
+);
 
 const hasEnv = Boolean(MNEMONIC && EVM_ADDRESS);
 
@@ -90,8 +96,43 @@ describe("AtomOne → Base Bridge E2E", () => {
         gas: gasLimit,
       };
 
-      console.log("Broadcasting IBC transfer...");
-      const txResult = await client.signAndBroadcast(sender, [transfer], fee);
+      let txResult: Awaited<ReturnType<typeof client.broadcastTx>> | undefined;
+      for (let attempt = 1; attempt <= MAX_SEQUENCE_RETRIES; attempt++) {
+        console.log(`Fetching chain/account sequence (attempt ${attempt}/${MAX_SEQUENCE_RETRIES})...`);
+        const [{ accountNumber, sequence }, chainId] = await Promise.all([
+          client.getSequence(sender),
+          client.getChainId(),
+        ]);
+        console.log(`Signing with accountNumber=${accountNumber}, sequence=${sequence}`);
+
+        const signedTx = await client.sign(sender, [transfer], fee, "", {
+          accountNumber,
+          sequence,
+          chainId,
+        });
+        const txBytes = TxRaw.encode(signedTx).finish();
+
+        console.log("Broadcasting IBC transfer...");
+        txResult = await client.broadcastTx(
+          txBytes,
+          TEST_TX_BROADCAST_TIMEOUT_MS,
+          TEST_TX_BROADCAST_POLL_INTERVAL_MS,
+        );
+        const rawLog = txResult.rawLog ?? "";
+        const isSequenceMismatch =
+          txResult.code === 32 || rawLog.toLowerCase().includes("account sequence mismatch");
+        if (!isSequenceMismatch || attempt === MAX_SEQUENCE_RETRIES) {
+          break;
+        }
+
+        const waitMs = 800 * attempt;
+        console.log(`Sequence mismatch detected, retrying in ${waitMs}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+      }
+
+      if (!txResult) {
+        throw new Error("Broadcast result is missing");
+      }
       console.log(`AtomOne tx: ${txResult.transactionHash} (code: ${txResult.code})`);
       expect(txResult.code, `Tx failed with code ${txResult.code}: ${txResult.rawLog}`).toBe(0);
 
