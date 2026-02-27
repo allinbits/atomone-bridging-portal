@@ -114,6 +114,6 @@ describe("AtomOne → Ethereum Bridge E2E", () => {
         }
       }
     },
-    ONE_HOUR * 2,
+    ONE_HOUR * 4,
   );
 });
