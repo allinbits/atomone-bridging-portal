@@ -1,6 +1,7 @@
 // @vitest-environment node
 import "dotenv/config";
 
+import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { describe, expect, it } from "vitest";
 import { createWalletClient, erc20Abi, http, publicActions, type RpcTransactionRequest } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
@@ -11,7 +12,6 @@ import routes from "@/routes.json";
 import { waitForPacketCompletion, waitForPacketStatus } from "@/union/graphql";
 
 const MNEMONIC = process.env.TEST_MNEMONIC;
-const ATOMONE_ADDRESS = process.env.TEST_ATOMONE_ADDRESS;
 const ETH_RPC = process.env.ETH_RPC || "https://ethereum-rpc.publicnode.com";
 const AMOUNT = process.env.TEST_AMOUNT || "4200";
 const DENOM = process.env.TEST_DENOM || "uatone";
@@ -19,12 +19,19 @@ const DENOM = process.env.TEST_DENOM || "uatone";
 const ONE_MINUTE = 1 * 60 * 1000;
 const ONE_HOUR = 60 * ONE_MINUTE;
 
-const hasEnv = Boolean(MNEMONIC && ATOMONE_ADDRESS);
+const hasEnv = Boolean(MNEMONIC);
 
 describe("Ethereum → AtomOne Bridge E2E", () => {
   it.skipIf(!hasEnv)(
     "bridges tokens from Ethereum to AtomOne via Osmosis + Union ZKGM",
     async () => {
+      const atomoneWallet = await DirectSecp256k1HdWallet.fromMnemonic(MNEMONIC!, {
+        prefix: "atone",
+      });
+      const [atomoneAccount] = await atomoneWallet.getAccounts();
+      const atomoneRecipient = atomoneAccount.address;
+      console.log(`Recipient (AtomOne): ${atomoneRecipient}`);
+
       const account = mnemonicToAccount(MNEMONIC!);
       const sender = account.address;
       console.log(`Sender (EVM): ${sender}`);
@@ -48,7 +55,7 @@ describe("Ethereum → AtomOne Bridge E2E", () => {
         "ethereum",
         "atomone",
         sender,
-        ATOMONE_ADDRESS!,
+        atomoneRecipient,
         BigInt(AMOUNT),
         route!.baseToken,
         route!.quoteToken,

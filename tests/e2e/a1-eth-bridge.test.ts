@@ -13,7 +13,6 @@ import { waitForPacketCompletion, waitForPacketStatus } from "@/union/graphql";
 
 const MNEMONIC = process.env.TEST_MNEMONIC;
 const EVM_ADDRESS = process.env.TEST_EVM_ADDRESS;
-const ATOMONE_ADDRESS = process.env.TEST_ATOMONE_ADDRESS;
 const ATOMONE_RPC = process.env.ATOMONE_RPC || "https://atomone-rpc.allinbits.com/";
 const AMOUNT = process.env.TEST_AMOUNT || "20000";
 const DENOM = process.env.TEST_DENOM || "uatone";
@@ -31,7 +30,7 @@ describe("AtomOne → Ethereum Bridge E2E", () => {
         prefix: "atone",
       });
       const [account] = await wallet.getAccounts();
-      const sender = ATOMONE_ADDRESS || account.address;
+      const sender = account.address;
       console.log(`Sender: ${sender}`);
 
       const client = await SigningStargateClient.connectWithSigner(
