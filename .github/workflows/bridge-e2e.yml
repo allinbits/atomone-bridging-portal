@@ -11,16 +11,20 @@ on:
 
 jobs:
   bridge-e2e:
-    name: ${{ matrix.test }}
+    name: ${{ matrix.test }} (delay=${{ matrix.delay_seconds }}s)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        test:
-          - a1-base-bridge
-          - a1-eth-bridge
-          - eth-a1-bridge
-          - base-a1-bridge
+        include:
+          - test: a1-base-bridge
+            delay_seconds: 0
+          - test: a1-eth-bridge
+            delay_seconds: 20
+          - test: eth-a1-bridge
+            delay_seconds: 0
+          - test: base-a1-bridge
+            delay_seconds: 0
     timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +39,13 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Delay before test (if configured)
+        run: |
+          echo "Configured delay: ${{ matrix.delay_seconds }}s"
+          if [ "${{ matrix.delay_seconds }}" -gt 0 ]; then
+            sleep "${{ matrix.delay_seconds }}"
+          fi
 
       - name: Run ${{ matrix.test }}
         env:
