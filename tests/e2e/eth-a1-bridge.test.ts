@@ -89,12 +89,18 @@ describe("Ethereum → AtomOne Bridge E2E", () => {
         }
       }
 
+      const nonce = await client.getTransactionCount({
+        address: sender,
+        blockTag: "pending",
+      });
+
       console.log("Sending EVM transaction...");
       const txHash = await client.sendTransaction({
         to: receiver,
         value: 0n,
         data: preparedRequest.data,
         chain: mainnet,
+        nonce,
       });
       console.log(`Ethereum tx: ${txHash}`);
 
