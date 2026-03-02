@@ -106,7 +106,6 @@ describe("Base → AtomOne Bridge E2E", () => {
         address: sender,
         blockTag: "pending",
       });
-      console.log(`Using nonce: ${nonce}`);
 
       console.log("Sending EVM transaction...");
       const txHash = await client.sendTransaction({
