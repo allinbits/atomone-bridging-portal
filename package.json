@@ -17,6 +17,11 @@
     "test:components": "npx playwright install && playwright test -c playwright-ct.config.ts",
     "test:components:debug": "npx playwright install && playwright test -c playwright-ct.config.ts --debug",
     "test:unit": "vitest run --reporter=verbose",
+    "test:bridge": "vitest run --config vitest.e2e.config.ts --reporter=verbose",
+    "test:bridge:a1-base": "vitest run --config vitest.e2e.config.ts tests/e2e/a1-base-bridge.test.ts --reporter=verbose",
+    "test:bridge:a1-eth": "vitest run --config vitest.e2e.config.ts tests/e2e/a1-eth-bridge.test.ts --reporter=verbose",
+    "test:bridge:base-a1": "vitest run --config vitest.e2e.config.ts tests/e2e/base-a1-bridge.test.ts --reporter=verbose",
+    "test:bridge:eth-a1": "vitest run --config vitest.e2e.config.ts tests/e2e/eth-a1-bridge.test.ts --reporter=verbose",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage"
   },

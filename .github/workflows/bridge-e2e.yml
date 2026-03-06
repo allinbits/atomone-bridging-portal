@@ -1,0 +1,58 @@
+name: Bridge E2E Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  bridge-e2e:
+    name: ${{ matrix.test }} (delay=${{ matrix.delay_seconds }}s)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - test: a1-base-bridge
+            delay_seconds: 0
+          - test: a1-eth-bridge
+            delay_seconds: 20
+          - test: eth-a1-bridge
+            delay_seconds: 0
+          - test: base-a1-bridge
+            delay_seconds: 0
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Delay before test (if configured)
+        run: |
+          echo "Configured delay: ${{ matrix.delay_seconds }}s"
+          if [ "${{ matrix.delay_seconds }}" -gt 0 ]; then
+            sleep "${{ matrix.delay_seconds }}"
+          fi
+
+      - name: Run ${{ matrix.test }}
+        env:
+          TEST_MNEMONIC: ${{ secrets.TEST_MNEMONIC }}
+          TEST_EVM_ADDRESS: ${{ secrets.TEST_EVM_ADDRESS }}
+        run: >
+          npx vitest run
+          --config vitest.e2e.config.ts
+          tests/e2e/${{ matrix.test }}.test.ts
+          --reporter=verbose
