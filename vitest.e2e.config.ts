@@ -7,12 +7,18 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-      "~": fileURLToPath(new URL("./src", import.meta.url)),
-    },
+      "@": fileURLToPath(new URL(
+        "./src",
+        import.meta.url
+      )),
+      "~": fileURLToPath(new URL(
+        "./src",
+        import.meta.url
+      ))
+    }
   },
   test: {
     include: ["tests/e2e/**/*.test.ts"],
-    testTimeout: 360_000,
-  },
+    testTimeout: 360_000
+  }
 });

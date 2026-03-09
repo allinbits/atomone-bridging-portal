@@ -205,7 +205,7 @@ bus.on(
               icon="close"
               @click="isOpen = false"
             />
-            <div class="flex flex-col text-[white] text-500 font-semibold text-center">
+            <div class="flex flex-col text-light text-500 font-semibold text-center">
               {{ $t("components.EthWalletConnect.cta") }}
             </div>
             <div class="flex flex-col text-grey-100 text-200 font-medium text-center leading-5">
@@ -327,7 +327,7 @@ bus.on(
           <div class="flex flex-col px-8 py-4 pt-6 bg-grey-300 rounded w-80 relative align-center items-center">
             <Icon icon="loading" :size="3" />
 
-            <div class="flex flex-col text-[white] text-400 font-semibold text-center mt-4">
+            <div class="flex flex-col text-light text-400 font-semibold text-center mt-4">
               {{ $t("components.EthWalletConnect.connecting") }}
             </div>
             <div class="text-200 text-grey-100 my-4">{{ $t("components.EthWalletConnect.wait") }}</div>
@@ -358,7 +358,7 @@ bus.on(
         <div class="flex flex-col px-8 py-4 pt-6 bg-grey-300 rounded w-80 relative align-center items-center">
           <Icon icon="close" :size="3" class="text-neg-200" />
 
-          <div class="flex flex-col text-[white] text-400 font-semibold text-center mt-4">
+          <div class="flex flex-col text-light text-400 font-semibold text-center mt-4">
             {{ $t("components.EthWalletConnect.failed") }}
           </div>
           <div class="text-200 text-grey-100 my-4 text-center">{{ $t("components.EthWalletConnect.failedSub") }}</div>

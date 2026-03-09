@@ -301,7 +301,7 @@ const handleButtonClick = async () => {
       <!-- Amount Input -->
       <div class="flex flex-col mb-4">
         <span class="mb-2 text-200 text-grey-100">Amount:</span>
-        <div class="relative group">
+        <div class="group">
           <UiInput
             :model-value="amount"
             @update:model-value="amount = $event"

@@ -25,7 +25,7 @@ const securityLink = "https://github.com/allinbits/security/";
 
         <Mint
           v-if="Wallet.loggedIn.value"
-          class="flex-grow"
+          class="grow"
         />
         <EthWalletConnect class="hidden md:block" />
         <WalletConnect class="hidden md:block" />
