@@ -1,3 +1,145 @@
+@import "tailwindcss";
+
+@plugin "@tailwindcss/typography";
+
+/*
+   THEME CONFIGURATION
+*/
+@theme {
+  /* --- Breakpoints (replace defaults) --- */
+  --breakpoint-*: initial;
+  --breakpoint-sm: 32.5rem;   /* 520px */
+  --breakpoint-md: 48.75rem;  /* 780px */
+  --breakpoint-lg: 72.5rem;   /* 1160px */
+  --breakpoint-xl: 90rem;     /* 1440px */
+
+  /* --- Colors (replace defaults) --- */
+  --color-*: initial;
+  --color-light: #FFFFFF;
+  --color-dark: #0C0C0C;
+  --color-night: #000000;
+  --color-darkblur: #0009;
+  --color-red-200: #F9DBDB;
+  --color-red-400: #900909;
+  --color-grey-50: #9F9F9F;
+  --color-grey-100: #686868;
+  --color-grey-200: #272727;
+  --color-grey-300: #181818;
+  --color-grey-400: #151515;
+  --color-grey-500: #0D0D0D;
+  --color-button: rgba(255, 255, 255, 0.05);
+  --color-badge-info: rgba(107, 239, 255, 0.10);
+  --color-badge-plain: rgba(255, 255, 255, 0.10);
+  --color-badge-fail: rgba(255, 139, 139, 0.10);
+  --color-accent-100: #6BEFFF;
+  --color-accent-200: #F4AFFF;
+  --color-neg-200: #FF8B8B;
+  --color-gradient-100: #D1E9CC;
+  --color-gradient-900: #03C5DC;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* --- Border Radius (replace defaults) --- */
+  --radius-*: initial;
+  --radius-none: 0;
+  --radius-xs: 0.25rem;   /* 4px */
+  --radius-sm: 0.5rem;    /* 8px */
+  --radius-md: 0.75rem;   /* 12px */
+  --radius-lg: 1rem;      /* 16px */
+  --radius: 1rem;          /* DEFAULT: 16px — bare `rounded` class */
+  --radius-circle: 100%;
+  --radius-full: 9999px;
+
+  /* --- Font Family (replace defaults) --- */
+  --font-*: initial;
+  --font-interVar: "Inter var", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-interNormal: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-termina: "Termina", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-roboto: "Roboto", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* --- Font Size (replace defaults) --- */
+  --text-*: initial;
+  --text-0: 0;
+  --text-50: 0.5rem;       /* 8px */
+  --text-50--line-height: 0.625rem;
+  --text-75: 0.6875rem;    /* 11px */
+  --text-75--line-height: 0.8125rem;
+  --text-100: 0.8125rem;   /* 13px */
+  --text-100--line-height: 1rem;
+  --text-150: 0.875rem;    /* 14px */
+  --text-150--line-height: 1rem;
+  --text-200: 0.9375rem;   /* 15px */
+  --text-200--line-height: 1rem;
+  --text-300: 1.0625rem;   /* 17px */
+  --text-300--line-height: 1.5rem;
+  --text-400: 1.5rem;      /* 24px */
+  --text-400--line-height: 1.75rem;
+  --text-500: 1.6875rem;   /* 27px */
+  --text-500--line-height: 2rem;
+  --text-600: 2rem;        /* 32px */
+  --text-600--line-height: 2.5rem;
+  --text-700: 2.5rem;      /* 40px */
+  --text-700--line-height: 3rem;
+  --text-800: 3rem;        /* 48px */
+  --text-800--line-height: 3.5rem;
+  --text-900: 3.5rem;      /* 56px */
+  --text-900--line-height: 4rem;
+  --text-1000: 4.5rem;     /* 72px */
+  --text-1000--line-height: 5rem;
+
+  /* --- Background Image (replace defaults) --- */
+  --background-image-*: initial;
+  --background-image-none: none;
+  --background-image-gradient: linear-gradient(88deg, #D1E9CC 0%, #03C5DC 100%);
+  --background-image-link: linear-gradient(88deg, #D1E9CC 0%, #03C5DC 33.333%, #D1E9CC 66.66%, #03C5DC 100%);
+
+  /* --- Z-Index (extend defaults) --- */
+  --z-min: -1;
+  --z-1: 1;
+  --z-2: 2;
+  --z-100: 100;
+  --z-max: 9999;
+}
+
+/*
+   CUSTOM UTILITIES
+*/
+@utility clip-display {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+@utility clip-hidden {
+  clip-path: polygon(0 0, 0 0, 0 100%, 0% 100%);
+}
+
+@utility text-gradient {
+  @apply bg-gradient inline-block text-transparent bg-clip-text;
+}
+
+@utility link-gradient {
+  @apply bg-link duration-[800ms] ease-in-out;
+  background-size: 300% 100%;
+  background-position: 0% 0%;
+}
+
+.link-gradient:hover {
+  background-position: 100% 0%;
+}
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (width >= 48.75rem) {
+    padding-inline: 1.5rem;
+  }
+  @media (width >= 72.5rem) {
+    padding-inline: 2.5rem;
+  }
+  @media (width >= 90rem) {
+    padding-inline: 4.75rem;
+  }
+}
+
 /*
    FONT FAMILY GROUPS
 */
@@ -106,10 +248,9 @@
   font-display: swap;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/*
+   BASE STYLES
+*/
 html {
   @apply font-interNormal text-light bg-dark;
   font-feature-settings:
@@ -139,65 +280,10 @@ html {
     @apply underline;
   }
 }
-/* 
-.markdown { 
-  h1 {
-    @apply text-500 font-medium my-2;
-  }
 
-  h2 {
-    @apply text-400 font-medium my-2;
-  }
-
-  h3,
-  h4,
-  h5 {
-    @apply text-300 font-medium my-2;
-  }
-
-  ul {
-    @apply pl-6 my-4;
-    list-style-type: disc;
-  }
-
-  li {
-    @apply text-200 py-2;
-    @apply leading-6;
-  }
-
-  p {
-    @apply mb-4;
-    text-align: justify;
-    @apply leading-6;
-  }
-
-  pre {
-    @apply bg-grey-500 p-3 rounded-sm mb-4 mt-4;
-  }
-
-  table {
-    @apply w-full my-4;
-  }
-
-  table,
-  th,
-  td {
-    @apply border-2 border-grey-200;
-  }
-
-  table {
-    @apply bg-grey-300;
-  }
-
-  th {
-    @apply p-2;
-  }
-
-  td {
-    @apply p-2;
-    @apply text-center;
-  }
-} */
+/*
+   CODE SYNTAX HIGHLIGHTING (Monokai)
+*/
 code[class*="language-"],
 pre[class*="language-"] {
   color: #f8f8f2;

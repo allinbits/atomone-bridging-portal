@@ -1,7 +1,7 @@
 <template>
   <label
     v-bind="$attrs"
-    class="z-1 relative flex gap-3"
+    class="z-1  flex gap-3"
     :class="variant === 'col' ? 'flex-col' : 'flex-row items-center'"
   >
     <div class="grow-0">{{ label }}</div>

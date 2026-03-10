@@ -38,13 +38,13 @@ const getStatusColor = (status?: string) => {
 </script>
 
 <template>
-  <div class="relative flex flex-col min-w-56 select-none">
+  <div class="flex flex-col min-w-56 select-none">
     <!-- Backdrop -->
     <Teleport to="body">
       <Transition name="bg">
         <div
           v-show="open"
-          class="fixed w-screen h-screen top-0 left-0 z-[10000] bg-darkblur backdrop-blur-xs"
+          class="fixed w-screen h-screen top-0 left-0 z-100 bg-darkblur backdrop-blur-xs"
           @click="open = false"
         ></div>
       </Transition>
@@ -52,7 +52,7 @@ const getStatusColor = (status?: string) => {
 
     <!-- Trigger button -->
     <div
-      class="relative bg-grey-400 duration-200 rounded"
+      class="bg-grey-400 duration-200 rounded"
       :class="open ? ['hover:bg-grey-200'] : ['hover:bg-grey-200']"
     >
       <div class="flex flex-row justify-between cursor-pointer gap-3 px-5 py-4" @click="open = !open">
@@ -66,7 +66,7 @@ const getStatusColor = (status?: string) => {
       <Transition name="drop">
         <div
           v-if="open"
-          class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001] flex flex-col min-w-96 max-w-2xl max-h-[80vh] overflow-y-auto text-left px-5 py-4 bg-grey-200 rounded-sm shadow-2xl"
+          class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-100 flex flex-col min-w-96 max-w-2xl max-h-[80vh] overflow-y-auto text-left px-5 py-4 bg-grey-200 rounded-sm shadow-2xl"
         >
           <div
             v-for="item in currentItems"
@@ -76,7 +76,7 @@ const getStatusColor = (status?: string) => {
           >
             <div
               v-if="item.status"
-              class="w-2 h-2 rounded-full flex-shrink-0"
+              class="w-2 h-2 rounded-full shrink-0"
               :class="getStatusColor(item.status)"
             ></div>
             <span>{{ item.name }}</span>

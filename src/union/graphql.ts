@@ -44,27 +44,30 @@ export interface PacketDetails {
 }
 
 export type PacketStatus =
-  | "PACKET_SEND"
-  | "PACKET_RECV"
-  | "WRITE_ACK"
-  | "PACKET_ACK";
+  | "PACKET_SEND" |
+  "PACKET_RECV" |
+  "WRITE_ACK" |
+  "PACKET_ACK";
 
 const STATUS_ORDER: Record<PacketStatus, number> = {
   PACKET_SEND: 0,
   PACKET_RECV: 1,
   WRITE_ACK: 2,
-  PACKET_ACK: 3,
+  PACKET_ACK: 3
 };
 
-async function queryPacketDetails(packetHash: string): Promise<PacketDetails[]> {
-  const response = await fetch(UNION_GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: PACKET_DETAILS_QUERY,
-      variables: { packet_hash: packetHash },
-    }),
-  });
+async function queryPacketDetails (packetHash: string): Promise<PacketDetails[]> {
+  const response = await fetch(
+    UNION_GRAPHQL_URL,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: PACKET_DETAILS_QUERY,
+        variables: { packet_hash: packetHash }
+      })
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`Union GraphQL request failed: ${response.status} ${response.statusText}`);
@@ -78,11 +81,11 @@ async function queryPacketDetails(packetHash: string): Promise<PacketDetails[]> 
   return result.data.v2_packets;
 }
 
-export async function waitForPacketStatus(
+export async function waitForPacketStatus (
   packetHash: string,
   targetStatus: PacketStatus,
   timeoutMs = 300_000,
-  pollIntervalMs = 15_000,
+  pollIntervalMs = 15_000
 ): Promise<PacketDetails> {
   const targetOrder = STATUS_ORDER[targetStatus];
   const start = Date.now();
@@ -97,31 +100,45 @@ export async function waitForPacketStatus(
           lastStatus = packet.status;
           const elapsed = Math.round((Date.now() - start) / 1000);
           const traceCount = packet.traces?.length ?? 0;
-          console.log(`[Union] Packet ${packetHash.slice(0, 10)}... status: ${packet.status} (${traceCount} traces, ${elapsed}s elapsed)`);
+          console.log(`[Union] Packet ${packetHash.slice(
+            0,
+            10
+          )}... status: ${packet.status} (${traceCount} traces, ${elapsed}s elapsed)`);
         }
         if (STATUS_ORDER[packet.status as PacketStatus] >= targetOrder) {
           return packet;
         }
       } else {
         const elapsed = Math.round((Date.now() - start) / 1000);
-        console.log(`[Union] Packet ${packetHash.slice(0, 10)}... not indexed yet (${elapsed}s elapsed)`);
+        console.log(`[Union] Packet ${packetHash.slice(
+          0,
+          10
+        )}... not indexed yet (${elapsed}s elapsed)`);
       }
     } catch (err) {
-      console.warn(`[Union] Query error: ${err instanceof Error ? err.message : err}`);
+      console.warn(`[Union] Query error: ${err instanceof Error
+        ? err.message
+        : err}`);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    await new Promise((resolve) => setTimeout(
+      resolve,
+      pollIntervalMs
+    ));
   }
 
-  throw new Error(
-    `Packet ${packetHash} did not reach ${targetStatus} within ${timeoutMs / 1000}s (last status: ${lastStatus || "not found"})`,
-  );
+  throw new Error(`Packet ${packetHash} did not reach ${targetStatus} within ${timeoutMs / 1000}s (last status: ${lastStatus || "not found"})`);
 }
 
-export async function waitForPacketCompletion(
+export async function waitForPacketCompletion (
   packetHash: string,
   timeoutMs = 300_000,
-  pollIntervalMs = 15_000,
+  pollIntervalMs = 15_000
 ): Promise<PacketDetails> {
-  return waitForPacketStatus(packetHash, "PACKET_ACK", timeoutMs, pollIntervalMs);
+  return waitForPacketStatus(
+    packetHash,
+    "PACKET_ACK",
+    timeoutMs,
+    pollIntervalMs
+  );
 }
