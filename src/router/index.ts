@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 
+import DashboardView from "@/views/DashboardView.vue";
 import FaqView from "@/views/FaqView.vue";
 import HomeView from "@/views/HomeView.vue";
 import PrivacyView from "@/views/PrivacyView.vue";
@@ -9,13 +10,14 @@ const routerHistory = createWebHistory();
 const routes = [
   { path: "/",
     component: HomeView },
+  { path: "/dashboard",
+    component: DashboardView },
   { path: "/terms",
     component: TermsView },
   { path: "/privacy",
     component: PrivacyView },
   { path: "/faq",
     component: FaqView }
-  // { path: "/design", component: DesignView },
 ];
 const router = createRouter({
   history: routerHistory,
