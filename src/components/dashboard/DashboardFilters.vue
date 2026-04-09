@@ -1,28 +1,49 @@
 <script lang="ts" setup>
 import type { RouteFilter, TimeRange, TokenFilter } from "@/composables/useDashboard";
 
-const tokenFilter = defineModel<TokenFilter>("tokenFilter", { required: true });
-const routeFilter = defineModel<RouteFilter>("routeFilter", { required: true });
-const timeRange = defineModel<TimeRange>("timeRange", { required: true });
+const tokenFilter = defineModel<TokenFilter>(
+  "tokenFilter",
+  { required: true }
+);
+const routeFilter = defineModel<RouteFilter>(
+  "routeFilter",
+  { required: true }
+);
+const timeRange = defineModel<TimeRange>(
+  "timeRange",
+  { required: true }
+);
 
 const emit = defineEmits<{ (e: "reset"): void }>();
 
-const tokenOptions: { value: TokenFilter; label: string }[] = [
-  { value: "all", label: "All Tokens" },
-  { value: "ATONE", label: "ATONE" },
-  { value: "PHOTON", label: "PHOTON" }
+const tokenOptions: { value: TokenFilter;
+  label: string; }[] = [
+  { value: "all",
+    label: "All Tokens" },
+  { value: "ATONE",
+    label: "ATONE" },
+  { value: "PHOTON",
+    label: "PHOTON" }
 ];
 
-const routeOptions: { value: RouteFilter; label: string }[] = [
-  { value: "all", label: "All Routes" },
-  { value: "atomone-ethereum", label: "AtomOne - Ethereum" },
-  { value: "atomone-base", label: "AtomOne - Base" }
+const routeOptions: { value: RouteFilter;
+  label: string; }[] = [
+  { value: "all",
+    label: "All Routes" },
+  { value: "atomone-ethereum",
+    label: "AtomOne - Ethereum" },
+  { value: "atomone-base",
+    label: "AtomOne - Base" }
 ];
 
-const timeOptions: { value: TimeRange; label: string }[] = [
-  { value: 7, label: "7 days" },
-  { value: 30, label: "30 days" },
-  { value: 90, label: "90 days" }
+const timeOptions: { value: TimeRange;
+  label: string; }[] = [
+  { value: 7,
+    label: "7 days" },
+  { value: 30,
+    label: "30 days" },
+  { value: 90,
+    label: "90 days" }
 ];
 
 function handleRouteChange (val: RouteFilter) {

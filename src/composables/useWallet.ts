@@ -1,4 +1,4 @@
-/* eslint-disable max-lines-per-function */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getSigningAtomoneClient } from "@atomone/atomone-types/atomone/client";
 import { EncodeObject, OfflineDirectSigner, OfflineSigner } from "@cosmjs/proto-signing";

@@ -15,13 +15,19 @@ const props = defineProps<{
 
 const maxValue = computed(() => {
   if (!props.data.length) return 1;
-  return Math.max(...props.data.map((d) => d.total), 1);
+  return Math.max(
+    ...props.data.map((d) => d.total),
+    1
+  );
 });
 
 const barWidth = computed(() => {
   if (!props.data.length) return 0;
   // Each bar takes equal width, with small gaps
-  return Math.max(100 / props.data.length - 1, 2);
+  return Math.max(
+    100 / props.data.length - 1,
+    2
+  );
 });
 
 const formatDate = (dateStr: string) => {
