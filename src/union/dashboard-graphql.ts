@@ -9,15 +9,21 @@ export const CHAIN_IDS = {
 
 export type ChainId = typeof CHAIN_IDS[keyof typeof CHAIN_IDS];
 
-export const CHAIN_DISPLAY: Record<string, { name: string; color: string }> = {
-  [CHAIN_IDS.osmosis]: { name: "AtomOne", color: "#6BEFFF" },
-  [CHAIN_IDS.ethereum]: { name: "Ethereum", color: "#627EEA" },
-  [CHAIN_IDS.base]: { name: "Base", color: "#0052FF" }
+export const CHAIN_DISPLAY: Record<string, { name: string;
+  color: string; }> = {
+  [CHAIN_IDS.osmosis]: { name: "AtomOne",
+    color: "#6BEFFF" },
+  [CHAIN_IDS.ethereum]: { name: "Ethereum",
+    color: "#627EEA" },
+  [CHAIN_IDS.base]: { name: "Base",
+    color: "#0052FF" }
 };
 
-// Known ERC20 contract addresses (lowercased) for token identification.
-// base_token_symbol is null in the API, so we identify tokens by their
-// quote_token (ERC20 address) or base_token (hex-encoded IBC denom).
+/*
+ * Known ERC20 contract addresses (lowercased) for token identification.
+ * base_token_symbol is null in the API, so we identify tokens by their
+ * quote_token (ERC20 address) or base_token (hex-encoded IBC denom).
+ */
 const ATONE_ERC20 = "0xa1a1d0b9182339e86e80db519218ea03ec09a1a1";
 const PHOTON_ERC20 = "0x222c042e17d94f4c83720583c75a37242921ba1c";
 
@@ -28,7 +34,11 @@ const PHOTON_IBC_HEX = "0x" + hexEncode("ibc/D6E02C5AE8A37FC2E3AB1FC8AC168878ADB
 function hexEncode (str: string): string {
   let hex = "";
   for (let i = 0; i < str.length; i++) {
-    hex += str.charCodeAt(i).toString(16).padStart(2, "0");
+    hex += str.charCodeAt(i).toString(16).
+      padStart(
+        2,
+        "0"
+      );
   }
   return hex;
 }
@@ -98,9 +108,15 @@ export interface TransferStats {
 }
 
 export interface LatencyStats {
-  secs_until_packet_recv: { p5: number; median: number; p95: number } | null;
-  secs_until_write_ack: { p5: number; median: number; p95: number } | null;
-  secs_until_packet_ack: { p5: number; median: number; p95: number } | null;
+  secs_until_packet_recv: { p5: number;
+    median: number;
+    p95: number; } | null;
+  secs_until_write_ack: { p5: number;
+    median: number;
+    p95: number; } | null;
+  secs_until_packet_ack: { p5: number;
+    median: number;
+    p95: number; } | null;
 }
 
 export interface TransferFilters {
@@ -182,11 +198,15 @@ query Latency(
 // --- Fetchers ---
 
 async function graphqlFetch<T> (query: string, variables: Record<string, unknown>, dataKey: string): Promise<T> {
-  const response = await fetch(UNION_GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables })
-  });
+  const response = await fetch(
+    UNION_GRAPHQL_URL,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query,
+        variables })
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`Union GraphQL request failed: ${response.status} ${response.statusText}`);
@@ -230,7 +250,11 @@ export async function fetchTransferHistory (filters: TransferFilters = {}): Prom
   if (filters.destinationChainId) variables.p_destination_universal_chain_id = filters.destinationChainId;
   if (filters.sortOrder) variables.p_sort_order = filters.sortOrder;
 
-  const raw = await graphqlFetch<RawTransfer[]>(TRANSFERS_QUERY, variables, "v2_transfers");
+  const raw = await graphqlFetch<RawTransfer[]>(
+    TRANSFERS_QUERY,
+    variables,
+    "v2_transfers"
+  );
   return enrichTransfers(raw);
 }
 
@@ -239,14 +263,22 @@ export async function fetchTransferStats (daysBack = 30, sourceChainId?: string,
   if (sourceChainId) variables.p_source_universal_chain_id = sourceChainId;
   if (destinationChainId) variables.p_destination_universal_chain_id = destinationChainId;
 
-  return graphqlFetch<TransferStats[]>(TRANSFER_STATS_QUERY, variables, "v2_stats_transfers_chain");
+  return graphqlFetch<TransferStats[]>(
+    TRANSFER_STATS_QUERY,
+    variables,
+    "v2_stats_transfers_chain"
+  );
 }
 
 export async function fetchLatencyStats (sourceChainId: string, destinationChainId: string): Promise<LatencyStats[]> {
-  return graphqlFetch<LatencyStats[]>(LATENCY_QUERY, {
-    p_source_universal_chain_id: sourceChainId,
-    p_destination_universal_chain_id: destinationChainId
-  }, "v2_stats_latency");
+  return graphqlFetch<LatencyStats[]>(
+    LATENCY_QUERY,
+    {
+      p_source_universal_chain_id: sourceChainId,
+      p_destination_universal_chain_id: destinationChainId
+    },
+    "v2_stats_latency"
+  );
 }
 
 /**
@@ -254,25 +286,34 @@ export async function fetchLatencyStats (sourceChainId: string, destinationChain
  * AtomOne uses Osmosis as the Union intermediary, so all Union packets
  * are between osmosis.osmosis-1 and the EVM chains.
  */
-function getRouteFilters (route?: string): Array<{ source: string; dest: string }> {
+function getRouteFilters (route?: string): Array<{ source: string;
+  dest: string; }> {
   if (route === "atomone-ethereum") {
     return [
-      { source: CHAIN_IDS.osmosis, dest: CHAIN_IDS.ethereum },
-      { source: CHAIN_IDS.ethereum, dest: CHAIN_IDS.osmosis }
+      { source: CHAIN_IDS.osmosis,
+        dest: CHAIN_IDS.ethereum },
+      { source: CHAIN_IDS.ethereum,
+        dest: CHAIN_IDS.osmosis }
     ];
   }
   if (route === "atomone-base") {
     return [
-      { source: CHAIN_IDS.osmosis, dest: CHAIN_IDS.base },
-      { source: CHAIN_IDS.base, dest: CHAIN_IDS.osmosis }
+      { source: CHAIN_IDS.osmosis,
+        dest: CHAIN_IDS.base },
+      { source: CHAIN_IDS.base,
+        dest: CHAIN_IDS.osmosis }
     ];
   }
   // All routes
   return [
-    { source: CHAIN_IDS.osmosis, dest: CHAIN_IDS.ethereum },
-    { source: CHAIN_IDS.ethereum, dest: CHAIN_IDS.osmosis },
-    { source: CHAIN_IDS.osmosis, dest: CHAIN_IDS.base },
-    { source: CHAIN_IDS.base, dest: CHAIN_IDS.osmosis }
+    { source: CHAIN_IDS.osmosis,
+      dest: CHAIN_IDS.ethereum },
+    { source: CHAIN_IDS.ethereum,
+      dest: CHAIN_IDS.osmosis },
+    { source: CHAIN_IDS.osmosis,
+      dest: CHAIN_IDS.base },
+    { source: CHAIN_IDS.base,
+      dest: CHAIN_IDS.osmosis }
   ];
 }
 
@@ -283,15 +324,11 @@ function getRouteFilters (route?: string): Array<{ source: string; dest: string 
 export async function fetchAtomOneTransfers (filters: Omit<TransferFilters, "sourceChainId" | "destinationChainId"> & { route?: string } = {}): Promise<Transfer[]> {
   const routes = getRouteFilters(filters.route);
 
-  const results = await Promise.all(
-    routes.map((r) =>
-      fetchTransferHistory({
-        ...filters,
-        sourceChainId: r.source,
-        destinationChainId: r.dest
-      })
-    )
-  );
+  const results = await Promise.all(routes.map((r) => fetchTransferHistory({
+    ...filters,
+    sourceChainId: r.source,
+    destinationChainId: r.dest
+  })));
 
   // Merge, deduplicate by packet_hash, and sort by timestamp desc
   const seen = new Set<string>();
@@ -311,7 +348,10 @@ export async function fetchAtomOneTransfers (filters: Omit<TransferFilters, "sou
     return tb.localeCompare(ta);
   });
 
-  return merged.slice(0, filters.limit ?? 20);
+  return merged.slice(
+    0,
+    filters.limit ?? 20
+  );
 }
 
 /**
@@ -319,8 +359,10 @@ export async function fetchAtomOneTransfers (filters: Omit<TransferFilters, "sou
  */
 export async function fetchAtomOneTransferStats (daysBack = 30): Promise<TransferStats[]> {
   const routes = getRouteFilters();
-  const results = await Promise.all(
-    routes.map((r) => fetchTransferStats(daysBack, r.source, r.dest))
-  );
+  const results = await Promise.all(routes.map((r) => fetchTransferStats(
+    daysBack,
+    r.source,
+    r.dest
+  )));
   return results.flat();
 }

@@ -24,16 +24,25 @@ const emit = defineEmits<{
 const truncateAddr = (addr: string) => {
   if (!addr) return "--";
   if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}...${addr.slice(-6)}`;
+  return `${addr.slice(
+    0,
+    8
+  )}...${addr.slice(-6)}`;
 };
 
 const formatAmount = (amount: string, decimals: number | null) => {
   if (!amount) return "--";
   const dec = decimals ?? 6;
-  const num = Number(amount) / Math.pow(10, dec);
+  const num = Number(amount) / Math.pow(
+    10,
+    dec
+  );
   if (num === 0) return "0";
   if (num < 0.001) return "< 0.001";
-  return num.toLocaleString(undefined, { maximumFractionDigits: 3 });
+  return num.toLocaleString(
+    undefined,
+    { maximumFractionDigits: 3 }
+  );
 };
 
 const formatTime = (timestamp: string | null) => {

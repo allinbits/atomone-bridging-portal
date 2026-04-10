@@ -5,7 +5,8 @@ import { CHAIN_DISPLAY } from "@/union/dashboard-graphql";
 
 const props = defineProps<{ chainId: string }>();
 
-const chain = computed(() => CHAIN_DISPLAY[props.chainId] ?? { name: props.chainId, color: "#9F9F9F" });
+const chain = computed(() => CHAIN_DISPLAY[props.chainId] ?? { name: props.chainId,
+  color: "#9F9F9F" });
 </script>
 
 <template>

@@ -27,9 +27,16 @@ export function useDashboard () {
     isLoading: transfersLoading,
     error: transfersError
   } = useQuery({
-    queryKey: computed(() => ["dashboard-transfers", routeFilter.value, currentPage.value, cursors.value[currentPage.value]]),
+    queryKey: computed(() => [
+      "dashboard-transfers",
+      routeFilter.value,
+      currentPage.value,
+      cursors.value[currentPage.value]
+    ]),
     queryFn: () => fetchAtomOneTransfers({
-      route: routeFilter.value === "all" ? undefined : routeFilter.value,
+      route: routeFilter.value === "all"
+        ? undefined
+        : routeFilter.value,
       limit: 20,
       sortOrder: cursors.value[currentPage.value],
       comparison: "lt"
@@ -50,7 +57,10 @@ export function useDashboard () {
     data: transferStats,
     isLoading: statsLoading
   } = useQuery({
-    queryKey: computed(() => ["dashboard-stats", timeRange.value]),
+    queryKey: computed(() => [
+      "dashboard-stats",
+      timeRange.value
+    ]),
     queryFn: () => fetchAtomOneTransferStats(timeRange.value),
     staleTime: 300_000,
     refetchInterval: 300_000
@@ -59,41 +69,61 @@ export function useDashboard () {
   // --- Latency Stats ---
   const { data: latencyEth } = useQuery({
     queryKey: ["dashboard-latency-eth"],
-    queryFn: () => fetchLatencyStats(CHAIN_IDS.osmosis, CHAIN_IDS.ethereum),
+    queryFn: () => fetchLatencyStats(
+      CHAIN_IDS.osmosis,
+      CHAIN_IDS.ethereum
+    ),
     staleTime: 300_000
   });
 
   const { data: latencyBase } = useQuery({
     queryKey: ["dashboard-latency-base"],
-    queryFn: () => fetchLatencyStats(CHAIN_IDS.osmosis, CHAIN_IDS.base),
+    queryFn: () => fetchLatencyStats(
+      CHAIN_IDS.osmosis,
+      CHAIN_IDS.base
+    ),
     staleTime: 300_000
   });
 
   // --- Computed metrics ---
   const totalTransfers = computed(() => {
     if (!transferStats.value) return 0;
-    return transferStats.value.reduce((sum, s) => sum + Number(s.total_transfers), 0);
+    return transferStats.value.reduce(
+      (sum, s) => sum + Number(s.total_transfers),
+      0
+    );
   });
 
   const successRate = computed(() => {
     if (!transfers.value || transfers.value.length === 0) return null;
     const succeeded = transfers.value.filter((t) => t.success === true).length;
     const total = transfers.value.filter((t) => t.success !== null).length;
-    return total > 0 ? Math.round((succeeded / total) * 100) : null;
+    return total > 0
+      ? Math.round(succeeded / total * 100)
+      : null;
   });
 
   const medianLatency = computed(() => {
     const eth = latencyEth.value?.[0]?.secs_until_packet_ack?.median;
     const base = latencyBase.value?.[0]?.secs_until_packet_ack?.median;
-    const vals = [eth, base].filter((v): v is number => v != null);
+    const vals = [
+      eth,
+      base
+    ].filter((v): v is number => v != null);
     if (vals.length === 0) return null;
-    return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    return Math.round(vals.reduce(
+      (a, b) => a + b,
+      0
+    ) / vals.length);
   });
 
   // --- Chart data ---
   const chartData = computed(() => {
     if (!transferStats.value) return [];
-    return aggregateChartData(transferStats.value, tokenFilter.value);
+    return aggregateChartData(
+      transferStats.value,
+      tokenFilter.value
+    );
   });
 
   // --- Pagination ---
@@ -164,7 +194,15 @@ function aggregateChartData (stats: TransferStats[], _tokenFilter: TokenFilter):
   for (const s of stats) {
     const date = s.day_date;
     if (!byDate.has(date)) {
-      byDate.set(date, { date, total: 0, atomoneToEth: 0, ethToAtomone: 0, atomoneToBase: 0, baseToAtomone: 0 });
+      byDate.set(
+        date,
+        { date,
+          total: 0,
+          atomoneToEth: 0,
+          ethToAtomone: 0,
+          atomoneToBase: 0,
+          baseToAtomone: 0 }
+      );
     }
     const point = byDate.get(date)!;
     const count = Number(s.total_transfers);
