@@ -98,6 +98,7 @@ const displayPhotonBalance = computed(() => {
 const chainName = computed(() => {
   if (chainId.value === 1) return "Ethereum";
   if (chainId.value === 8453) return "Base";
+  if (chainId.value === 11155111) return "Sepolia";
   return "Unknown";
 });
 

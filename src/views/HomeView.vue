@@ -9,11 +9,16 @@ import DropDown from "@/components/ui/DropDown.vue";
 import UiInput from "@/components/ui/UiInput.vue";
 import { useBridges } from "@/composables/useBridge.ts";
 import { type SupportedChain, useEthWallet } from "@/composables/useEthWallet";
+import { useNetwork } from "@/composables/useNetwork";
 import { useWallet } from "@/composables/useWallet";
-import routes from "@/routes.json";
 
 const Wallet = useWallet();
 const EthWallet = useEthWallet();
+const { network, networkConfig } = useNetwork();
+
+// Routes of the selected network; empty until that network has a spectre deployment
+const routes = computed(() => networkConfig.value.routes);
+const hasRoutes = computed(() => networkConfig.value.available && routes.value.length > 0);
 const srcIndex = ref(0);
 const destIndex = ref(0);
 const tokenIndex = ref(0);
@@ -22,7 +27,7 @@ const recipientAddress = ref("");
 
 // Get all unique tokens from routes
 const availableTokens = computed(() => {
-  return Array.from(new Set(routes.map((route) => route.denom))).map((denom) => ({
+  return Array.from(new Set(routes.value.map((route) => route.denom))).map((denom) => ({
     name: denom === "uatone"
       ? "ATONE"
       : "PHOTON",
@@ -33,7 +38,7 @@ const availableTokens = computed(() => {
 
 // Get all unique source chains
 const allSources = computed(() => {
-  return Array.from(new Set(routes.map((route) => route.src))).map((src) => ({
+  return Array.from(new Set(routes.value.map((route) => route.src))).map((src) => ({
     name: src,
     status: "active"
   }));
@@ -46,7 +51,7 @@ const itemsSrc = computed(() => {
     return allSources.value;
   }
 
-  const validSources = routes.
+  const validSources = routes.value.
     filter((route) => route.denom === selectedToken).
     map((route) => route.src);
 
@@ -60,7 +65,7 @@ const itemsDest = computed(() => {
     return [];
   }
 
-  let validRoutes = routes.filter((route) => route.src === selectedSrc);
+  let validRoutes = routes.value.filter((route) => route.src === selectedSrc);
 
   // If a token is selected, filter by token as well
   const selectedToken = availableTokens.value[tokenIndex.value]?.denom;
@@ -74,7 +79,7 @@ const itemsDest = computed(() => {
 });
 
 const switchEvmIfNeeded = (chainName: string | undefined) => {
-  if (chainName === "Ethereum" || chainName === "Base") {
+  if (chainName === "Ethereum" || chainName === "Base" || chainName === "Sepolia") {
     const chain = chainName.toLowerCase() as SupportedChain;
     EthWallet.desiredChain.value = chain;
     if (EthWallet.loggedIn.value) {
@@ -114,9 +119,12 @@ const handleTokenIndexChange = (index: number) => {
   switchEvmIfNeeded(itemsSrc.value[srcIndex.value]?.name);
 };
 
-const balancesFetcher = (address: Ref<string>) => fetch(`${chainConfig.rest}cosmos/bank/v1beta1/balances/${address.value}?pagination.limit=1000`).then((response) => response.json());
+const balancesFetcher = (address: Ref<string>) => fetch(`${networkConfig.value.cosmos.rest}cosmos/bank/v1beta1/balances/${address.value}?pagination.limit=1000`).then((response) => response.json());
 const { data: balances } = useQuery({
-  queryKey: ["balances"],
+  queryKey: [
+    "balances",
+    network
+  ],
   queryFn: () => balancesFetcher(Wallet.address),
   enabled: Wallet.loggedIn
 });
@@ -141,10 +149,30 @@ const { data: ethPhotonBalance } = useQuery({
 });
 const isAmountInputDisabled = computed(() => {
   const selectedSrc = itemsSrc.value[srcIndex.value]?.name;
-  if (selectedSrc === "Ethereum" || selectedSrc === "Base") {
+  if (selectedSrc === "Ethereum" || selectedSrc === "Base" || selectedSrc === "Sepolia") {
     return !EthWallet.loggedIn.value;
   }
   return !Wallet.loggedIn.value;
+});
+
+// Spectre (Sepolia) token balance for the selected token
+const isSepoliaSource = computed(() => itemsSrc.value[srcIndex.value]?.name === "Sepolia");
+const spectreTokenAddress = computed(() => {
+  if (!isSepoliaSource.value) return null;
+  return availableTokens.value[tokenIndex.value]?.denom === "uatone"
+    ? networkConfig.value.evm.erc20
+    : null;
+});
+const { data: spectreTokenBalance } = useQuery({
+  queryKey: [
+    "spectre-token-balance",
+    spectreTokenAddress
+  ],
+  enabled: computed(() => EthWallet.loggedIn.value && !!spectreTokenAddress.value),
+  queryFn: () => EthWallet.getTokenBalance(
+    spectreTokenAddress.value as `0x${string}`,
+    6
+  )
 });
 
 const max = computed(() => {
@@ -161,6 +189,10 @@ const max = computed(() => {
       return ethPhotonBalance?.value || "0";
     }
     return "0";
+  }
+
+  if (selectedSrc === "Sepolia") {
+    return spectreTokenBalance?.value || "0";
   }
 
   // Otherwise use AtomOne balances
@@ -184,7 +216,7 @@ const validateRecipientAddress = computed(() => {
   const selectedDest = itemsDest.value[destIndex.value]?.name;
 
   // Ethereum address validation (0x followed by 40 hex characters)
-  if (selectedDest === "Ethereum" || selectedDest === "Base") {
+  if (selectedDest === "Ethereum" || selectedDest === "Base" || selectedDest === "Sepolia") {
     const ethRegex = /^0x[a-fA-F0-9]{40}$/;
     if (!ethRegex.test(address)) {
       return { isValid: false,
@@ -205,7 +237,7 @@ const validateRecipientAddress = computed(() => {
 
 const fillRecipientAddress = computed(() => {
   const selectedDest = itemsDest.value[destIndex.value]?.name;
-  if (selectedDest === "Ethereum" || selectedDest === "Base") {
+  if (selectedDest === "Ethereum" || selectedDest === "Base" || selectedDest === "Sepolia") {
     return EthWallet.loggedIn.value
       ? EthWallet.address.value
       : "";
@@ -349,8 +381,13 @@ const handleButtonClick = async () => {
         </div>
       </div>
 
+      <!-- No routes on this network -->
+      <div v-if="!hasRoutes" class="mt-6 p-4 rounded-md border border-grey-100 text-center text-300 text-grey-100">
+        No bridge routes available on {{ networkConfig.label }} yet
+      </div>
+
       <!-- Bridge / Connect Button -->
-      <div class="flex justify-center mt-6">
+      <div v-if="hasRoutes" class="flex justify-center mt-6">
         <CommonButton
           :disabled="bridgeLoading"
           @click="handleButtonClick"

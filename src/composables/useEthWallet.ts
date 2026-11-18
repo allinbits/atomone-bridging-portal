@@ -9,25 +9,23 @@ import {
   formatUnits,
   type WalletClient
 } from "viem";
-import { base, mainnet } from "viem/chains";
+import { base, mainnet, sepolia } from "viem/chains";
 import { computed, nextTick, Ref, ref } from "vue";
 
-import routes from "@/routes.json";
-
-// ERC20 token addresses on Ethereum (from routes.json)
-const getTokenAddress = (denom: string): `0x${string}` | null => {
-  const route = routes.find((r) => r.src === "AtomOne" && r.dest === "Ethereum" && r.denom === denom);
-  return route?.quoteToken as `0x${string}` | null;
-};
-
+/*
+ * Mainnet Ethereum ERC20 addresses for ATONE/PHOTON (Union-era tokens). The
+ * Union routes are gone and no mainnet spectre deployment exists yet, so these
+ * are unset: the balance getters return "0" while the addresses are null.
+ * Fill them from the mainnet network config once it exists.
+ */
 export const ERC20_TOKENS = {
   ATONE: {
-    address: getTokenAddress("uatone"),
+    address: null as `0x${string}` | null,
     symbol: "ATONE",
     decimals: 6
   },
   PHOTON: {
-    address: getTokenAddress("uphoton"),
+    address: null as `0x${string}` | null,
     symbol: "PHOTON",
     decimals: 6
   }
@@ -59,12 +57,15 @@ export const getEthWalletHelp = (wallet: EthWallets) => {
   }
 };
 
-export type SupportedChain = "ethereum" | "base";
+export type SupportedChain = "ethereum" | "base" | "sepolia";
 
 const chainConfig = {
   ethereum: mainnet,
-  base: base
+  base: base,
+  sepolia: sepolia
 };
+
+const chainById = (id: number | null | undefined) => Object.values(chainConfig).find((chain) => chain.id === id) ?? mainnet;
 
 // EIP-1193 Provider type for internal use
 type EIP1193Provider = NonNullable<typeof window.ethereum>;
@@ -143,11 +144,8 @@ const useEthWalletInstance = () => {
     chainId.value = parsedChainId;
 
     if (activeProvider.value) {
-      const chain = parsedChainId === base.id
-        ? base
-        : mainnet;
       walletClient.value = createWalletClient({
-        chain,
+        chain: chainById(parsedChainId),
         transport: custom(activeProvider.value)
       });
     }
@@ -437,9 +435,7 @@ const useEthWalletInstance = () => {
       to: tx.to as `0x${string}`,
       value: tx.value,
       data: tx.data,
-      chain: chainId.value === base.id
-        ? base
-        : mainnet
+      chain: chainById(chainId.value)
     });
 
     return hash;
