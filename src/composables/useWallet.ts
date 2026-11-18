@@ -8,7 +8,24 @@ import { OfflineAminoSigner } from "@keplr-wallet/types";
 import { useQueryClient } from "@tanstack/vue-query";
 import { computed, nextTick, Ref, ref } from "vue";
 
-import chainInfo from "@/chain-config.json";
+import chainConfig from "@/chain-config.json";
+import { useNetwork } from "@/composables/useNetwork";
+
+/*
+ * Chain info for the selected network: the mainnet chain-config overlaid with
+ * the network's cosmos endpoint/chain-id. Wallets get this via
+ * experimentalSuggestChain at connect time, so switching networks re-suggests
+ * the right chain on the next connect.
+ */
+const currentChainInfo = () => {
+  const { networkConfig } = useNetwork();
+  const network = networkConfig.value.cosmos;
+  return { ...chainConfig,
+    chainId: network.chainId,
+    chainName: network.chainName,
+    rpc: network.rpc,
+    rest: network.rest };
+};
 
 export enum Wallets {
   keplr = "Keplr",
@@ -45,6 +62,7 @@ const useWalletInstance = () => {
   const signer: Ref<OfflineSigner | null> = ref(null);
 
   const connect = async (walletType: Wallets, toAddress?: string, signal?: AbortSignal) => {
+    const chainInfo = currentChainInfo();
     if (signal?.aborted) {
       return Promise.reject(new DOMException(
         "Aborted",
@@ -169,6 +187,7 @@ const useWalletInstance = () => {
   const sendTx = async (msgs: EncodeObject[]) => {
     if (signer.value) {
       try {
+        const chainInfo = currentChainInfo();
         let client: SigningStargateClient;
         if (msgs[0].typeUrl.startsWith("/atomone.")) {
           client = await getSigningAtomoneClient({ rpcEndpoint: chainInfo.rpc,
@@ -238,8 +257,22 @@ const useWalletInstance = () => {
     () => refreshAddress()
   );
 
+  /*
+   * Switching networks must drop any wallet connected to the previous chain:
+   * accounts are per chain-id, and lingering state would sign for the wrong
+   * network. Registered as a listener so useNetwork stays dependency-free.
+   */
+  useNetwork().onNetworkChange(() => {
+    signOut();
+    queryClient.invalidateQueries({ queryKey: ["balances"] });
+    queryClient.invalidateQueries({ queryKey: ["rewards"] });
+    queryClient.invalidateQueries({ queryKey: ["delegations"] });
+    queryClient.invalidateQueries({ queryKey: ["validators"] });
+  });
+
   return { address,
     loggedIn,
+    signer,
     keplr,
     leap,
     cosmostation,

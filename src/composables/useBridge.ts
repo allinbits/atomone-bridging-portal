@@ -1,136 +1,140 @@
-import { EncodeObject } from "@cosmjs/proto-signing";
-import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
-import { RpcTransactionRequest } from "viem";
 import { ref } from "vue";
 
+import { useNetwork } from "@/composables/useNetwork";
 import { useWallet } from "@/composables/useWallet";
-import { makeAtoneToEthTransaction } from "@/ics20/a1-eth-hook.ts";
-import { BASE_ZKGM_ADDRESS, ETH_ZKGM_ADDRESS } from "@/ics20/constants.ts";
-import { makeEthToAtoneTransaction } from "@/ics20/eth-a1-hook.ts";
-import routes from "@/routes.json";
+import type { SpectreRoute } from "@/networks";
+import { makeSpectreA1ToEthTransfer } from "@/spectre/a1-eth-hook.ts";
+import { SPECTRE_DEFAULT_GAS, SPECTRE_GAS_MULTIPLIER, SPECTRE_MIN_FEE_AMOUNT } from "@/spectre/constants.ts";
+import { makeSpectreEthToA1Transfer } from "@/spectre/eth-a1-hook.ts";
+import { createSpectreSigningClient } from "@/spectre/msgTransferCodec.ts";
 
-import { type SupportedChain, useEthWallet } from "./useEthWallet.ts";
+import { useEthWallet } from "./useEthWallet.ts";
 
-const buildBridgeInfo = async (src: string, dest: string, rcpt: string, sender: string, denom: string, amount: string) => {
-  const route = routes.find((r) => r.src.toLowerCase() === src.toLowerCase() && r.dest.toLowerCase() === dest.toLowerCase() && denom === r.denom);
-  if (!route) {
-    throw new Error(`Bridge from ${src} to ${dest} with denom ${denom} is not supported.`);
+const findRoute = (routes: SpectreRoute[], src: string, dest: string, denom: string) => routes.find((r) => r.src.toLowerCase() === src.toLowerCase() && r.dest.toLowerCase() === dest.toLowerCase() && denom === r.denom);
+
+const createSpectreCosmosBridge = async (rcpt: string, denom: string, amount: string, loading: { value: boolean }) => {
+  const { networkConfig } = useNetwork();
+  const { address, signer } = useWallet();
+  if (!address.value || !signer.value) {
+    throw new Error("Connect your AtomOne wallet first");
   }
-  if (src === "atomone") {
-    const { hash, ...memo } = await makeAtoneToEthTransaction(
-      src,
-      dest,
-      sender,
-      rcpt,
+
+  const transfer = makeSpectreA1ToEthTransfer({
+    sender: address.value,
+    receiver: rcpt,
+    denom,
+    amount: BigInt(amount),
+    sourceChannel: networkConfig.value.cosmos.spectreClientId
+  });
+
+  loading.value = true;
+  try {
+    const client = await createSpectreSigningClient(
+      networkConfig.value.cosmos.rpc,
+      signer.value
+    );
+    let gas = SPECTRE_DEFAULT_GAS;
+    try {
+      const simulated = await client.simulate(
+        address.value,
+        [transfer],
+        ""
+      );
+      if (simulated > 0) {
+        gas = Math.ceil(simulated * SPECTRE_GAS_MULTIPLIER);
+      }
+    } catch {
+      // fall back to the fixed default gas
+    }
+    const feeAmount = Math.max(
+      SPECTRE_MIN_FEE_AMOUNT,
+      Math.ceil(gas * 0.25)
+    );
+    const result = await client.signAndBroadcast(
+      address.value,
+      [transfer],
+      {
+        amount: [
+          { amount: feeAmount + "",
+            denom: networkConfig.value.cosmos.feeDenom }
+        ],
+        gas: gas + ""
+      }
+    );
+    if (result.code !== 0) {
+      throw new Error(`Spectre transfer failed with code ${result.code}: ${result.rawLog}`);
+    }
+    return { packetHash: result.transactionHash };
+  } finally {
+    loading.value = false;
+  }
+};
+
+const createSpectreEvmBridge = async (rcpt: string, amount: string, loading: { value: boolean }) => {
+  const { networkConfig } = useNetwork();
+  const { walletClient, ensureAllowance, switchChain } = useEthWallet();
+
+  await switchChain(networkConfig.value.evm.chain);
+
+  const { to, data, approveSpender } = makeSpectreEthToA1Transfer({
+    baseToken: networkConfig.value.evm.erc20,
+    amount: BigInt(amount),
+    receiver: rcpt,
+    sourceClient: networkConfig.value.evm.clientId,
+    ics20: networkConfig.value.evm.ics20
+  });
+
+  loading.value = true;
+  try {
+    await ensureAllowance(
+      networkConfig.value.evm.erc20,
+      approveSpender,
       BigInt(amount),
-      route.baseToken,
-      route.quoteToken,
-      route.metadata
+      networkConfig.value.evm.chain
     );
 
-    return { memo,
-      hash,
-      baseToken: route.baseToken,
-      receiver: dest === "ethereum"
-        ? ETH_ZKGM_ADDRESS
-        : BASE_ZKGM_ADDRESS };
-  } else {
-    const { hash, ...tx } = await makeEthToAtoneTransaction(
-      src,
-      dest,
-      sender,
-      rcpt,
-      BigInt(amount),
-      route.baseToken,
-      route.quoteToken,
-      route.metadata
-    );
-    return { hash,
-      memo: tx.preparedRequest,
-      baseToken: route.baseToken,
-      receiver: tx.preparedRequest.to as string };
+    const [account] = await walletClient.value!.getAddresses();
+
+    const hash = await walletClient.value!.sendTransaction({
+      account,
+      to,
+      value: BigInt(0),
+      data,
+      chain: undefined
+    });
+    return { packetHash: hash };
+  } finally {
+    loading.value = false;
   }
 };
 
 export const useBridges = () => {
   const loading = ref(false);
+  const { networkConfig } = useNetwork();
 
   const createBridge = async (src: string, dest: string, rcpt: string, denom: string, amount: string) => {
+    const route = findRoute(
+      networkConfig.value.routes,
+      src,
+      dest,
+      denom
+    );
+    if (!route) {
+      throw new Error(`Bridge from ${src} to ${dest} with denom ${denom} is not supported on ${networkConfig.value.label}.`);
+    }
     if (src === "atomone") {
-      const { sendTx, address } = useWallet();
-      const { memo, receiver, hash } = await buildBridgeInfo(
-        src,
-        dest,
+      return createSpectreCosmosBridge(
         rcpt,
-        address.value,
         denom,
-        amount
+        amount,
+        loading
       );
-      const msg = MsgTransfer.fromPartial({
-        sender: address.value,
-        sourcePort: "transfer",
-        sourceChannel: "channel-2",
-        token: {
-          denom,
-          amount: amount + ""
-        },
-        receiver,
-        memo: JSON.stringify(memo),
-        timeoutHeight: undefined,
-        timeoutTimestamp: BigInt(Date.now() + 10 * 60 * 1000) * BigInt(1_000_000) // 10 minutes from now
-      });
-      const transfer: EncodeObject = {
-        typeUrl: "/ibc.applications.transfer.v1.MsgTransfer",
-        value: msg
-      };
-
-      loading.value = true;
-      try {
-        await sendTx([transfer]);
-        return { packetHash: hash };
-      } finally {
-        loading.value = false;
-      }
     }
-    if (src === "ethereum" || src === "base") {
-      const { address, walletClient, ensureAllowance, switchChain } = useEthWallet();
-
-      await switchChain(src as SupportedChain);
-
-      const { memo, receiver, baseToken, hash } = await buildBridgeInfo(
-        src,
-        dest,
-        rcpt,
-        address.value,
-        denom,
-        amount
-      );
-
-      loading.value = true;
-      try {
-        if (baseToken.startsWith("0x")) {
-          await ensureAllowance(
-            baseToken as `0x${string}`,
-            receiver as `0x${string}`,
-            BigInt(amount),
-            src as SupportedChain
-          );
-        }
-
-        const [account] = await walletClient.value!.getAddresses();
-
-        await walletClient.value?.sendTransaction({
-          to: receiver as `0x${string}`,
-          value: BigInt(0),
-          data: (memo as RpcTransactionRequest).data,
-          account,
-          chain: undefined
-        });
-        return { packetHash: hash };
-      } finally {
-        loading.value = false;
-      }
-    }
+    return createSpectreEvmBridge(
+      rcpt,
+      amount,
+      loading
+    );
   };
   return { createBridge,
     loading };
