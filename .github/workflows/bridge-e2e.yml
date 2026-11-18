@@ -11,21 +11,15 @@ on:
 
 jobs:
   bridge-e2e:
-    name: ${{ matrix.test }} (delay=${{ matrix.delay_seconds }}s)
+    name: ${{ matrix.test }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - test: a1-base-bridge
-            delay_seconds: 0
-          - test: a1-eth-bridge
-            delay_seconds: 20
-          - test: eth-a1-bridge
-            delay_seconds: 0
-          - test: base-a1-bridge
-            delay_seconds: 0
-    timeout-minutes: 300
+          - test: spectre-a1-eth-bridge
+          - test: spectre-eth-a1-bridge
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -40,17 +34,15 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Delay before test (if configured)
-        run: |
-          echo "Configured delay: ${{ matrix.delay_seconds }}s"
-          if [ "${{ matrix.delay_seconds }}" -gt 0 ]; then
-            sleep "${{ matrix.delay_seconds }}"
-          fi
-
+      # Packet delivery (and thus the opt-in ACK waits) needs the relayer
+      # against the devnet spectre deployment, which CI does not run; the tests
+      # assert the send legs only and skip the waits by default.
       - name: Run ${{ matrix.test }}
         env:
           TEST_MNEMONIC: ${{ secrets.TEST_MNEMONIC }}
           TEST_EVM_ADDRESS: ${{ secrets.TEST_EVM_ADDRESS }}
+          TEST_EVM_PRIVATE_KEY: ${{ secrets.TEST_EVM_PRIVATE_KEY }}
+          TEST_ENABLE_WAIT_FOR_ACK: "false"
         run: >
           npx vitest run
           --config vitest.e2e.config.ts
